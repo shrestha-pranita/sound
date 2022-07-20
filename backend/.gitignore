@@ -18,7 +18,8 @@ npm-debug.log*
 /.pytest_cache/
 /DjangoRestApi/db_nsd_audio.sqlite3
 /DjangoRestApi/media
-/DjangoRestApi/pretrained_modelss
+/DjangoRestApi/pretrained_models
+/soundrecordvenv
 ### JetBrains
 .idea/
 *.iml
