@@ -16,7 +16,7 @@ from traceback import print_exc
 from pyannote.database.util import load_rttm
 from rest_framework import status
 from django.http import JsonResponse
-from diart.pipelines import OnlineSpeakerDiarization
+#from diart.pipelines import OnlineSpeakerDiarization
 from typing import Union, Text, Optional, Tuple
 from pyannote.core import Annotation, SlidingWindowFeature
 from speechbrain.pretrained import VAD
@@ -74,6 +74,7 @@ SAMPLE_RATE = 16000
                        #savedir="pretrained_models/vad-crdnn-libriparty")
 # VAD = VAD.from_hparams(source="speechbrain/vad-crdnn-libriparty", savedir="pretrained_models/vad-crdnn-libriparty")
 
+"""
 pipeline = OnlineSpeakerDiarization(
     step=0.5,
     latency=0.5,
@@ -84,6 +85,7 @@ pipeline = OnlineSpeakerDiarization(
     beta=10,
     max_speakers=5,
 )
+"""
 
 def audio_to_spectrogram(test_audio_filename):
     audio, sample_rate = librosa.load(test_audio_filename, res_type='kaiser_fast')
@@ -138,11 +140,13 @@ def predict(request, filepath):
       env_classification(filepath)
       if np.sum(flatness)/np.prod(flatness.shape) > 0.3:
         noise_presence = 'yes'
+      return response
       # speech_probs = VAD.get_speech_prob_chunk(torch.tensor(data))
       # activation_pass_values = VAD.apply_threshold(speech_probs).numpy()
       # vad_prob = activation_pass_values.sum()/np.prod(activation_pass_values.shape)
       # confidence = speech_probs.numpy().sum()/np.prod(activation_pass_values.shape)
       # if vad_prob > 0.5:
+      """
       source_temp = Path(filepath).expanduser()
       audio_source = src.FileAudioSource(
           file=source_temp,
@@ -171,8 +175,10 @@ def predict(request, filepath):
       os.remove(current_diarization)
       os.remove(filepath)
       return response
+    """
     except:
       response = JsonResponse({'status': 'fail', 'description': 'Detection Failed!!'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
       os.remove(current_diarization)
       os.remove(filepath)
+    
       return response
