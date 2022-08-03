@@ -16,7 +16,7 @@ from traceback import print_exc
 from pyannote.database.util import load_rttm
 from rest_framework import status
 from django.http import JsonResponse
-#from diart.pipelines import OnlineSpeakerDiarization
+from diart.pipelines import OnlineSpeakerDiarization
 from typing import Union, Text, Optional, Tuple
 from pyannote.core import Annotation, SlidingWindowFeature
 from speechbrain.pretrained import VAD
@@ -74,7 +74,6 @@ SAMPLE_RATE = 16000
                        #savedir="pretrained_models/vad-crdnn-libriparty")
 # VAD = VAD.from_hparams(source="speechbrain/vad-crdnn-libriparty", savedir="pretrained_models/vad-crdnn-libriparty")
 
-"""
 pipeline = OnlineSpeakerDiarization(
     step=0.5,
     latency=0.5,
@@ -85,18 +84,47 @@ pipeline = OnlineSpeakerDiarization(
     beta=10,
     max_speakers=5,
 )
-"""
 
 def audio_to_spectrogram(test_audio_filename):
     audio, sample_rate = librosa.load(test_audio_filename, res_type='kaiser_fast')
     spectrogram_test = librosa.feature.melspectrogram(audio,sample_rate)
-    mfccs_scaled_features = np.mean(spectrogram_test,axis=0)
-    print(spectrogram_test.shape)
-    spectrogram_test = np.reshape(spectrogram_test,(1,128,44,1))
+
+    #mfccs_scaled_features = np.mean(spectrogram_test,axis=0)
+    SPEC_H = 128
+    SPEC_W = 216
+    
+    #reshaped = spectrogram_test.reshape((1,SPEC_H, SPEC_W,1))
+    #spectrogram_test = np.reshape(spectrogram_test,(1,SPEC_H, SPEC_W,1))
+    spectrogram_test = np.resize(spectrogram_test,(1,SPEC_H, SPEC_W,1))
+    #spectrogram_test = np.reshape(spectrogram_test,(1,128,44,1))
     #spectrogram_test = np.reshape(spectrogram_test,(1,128,216,1))
     return spectrogram_test
 
 def env_classification(filepath):
+  """
+  low = ['Dog', 'Rooster', 'Pig', 'Cow', 'Frog', 'Cat', 'Hen', 'Insects (flying)', 'Sheep', 'Crow', 'Rain', 'Sea waves',
+'Crackling fire', 'Crickets', 'Chirping birds', 'Water drops', 'Wind', 'Thunderstorm', 'Crying baby', 'Sneezing', 'Breathing'
+'Coughing', 'Brushing teeth', 'Snoring', 'Drinking/sipping', 'Mouse click', 'Keyboard typing', 'Can opening', 'Washing machine',
+'Vacuum cleaner', 'Clock alarm', 'Clock tick', 'Glass breaking', 'Helicopter', 'Chain saw', 'Siren', 'Car horn', 'Engine', 'Train',
+'Church bells', 'Airplane', 'Crackers', 'Hand saw', 'Drilling', 'Engine idling', 'Gun shot', ' Jackhammer', 'Siren', 'Street music',
+'Children playing', 'Air conditioner']
+
+  medium = ['Pouring water', 'Toilet flush', 'Laughing']
+
+  high = ['Footsteps', 'Door knock', '"Door,wood creaks"']
+  """
+
+  low = ['dog', 'rooster', 'pig', 'cow', 'frog', 'cat', 'hen', 'insects', 'sheep', 'crow', 'rain', 'sea_waves',
+'crackling_fire', 'crickets', 'chirping_birds', 'water_drops', 'wind', 'thunderstorm', 'crying_baby', 'sneezing', 'breathing'
+'coughing', 'brushing_teeth', 'snoring', 'drinking_sipping', 'mouse_click', 'keyboard_typing', 'can_opening', 'washing_machine',
+'vacuum_cleaner', 'clock_alarm', 'clock_tick', 'glass_breaking', 'helicopter', 'chain_saw', 'siren', 'car_horn', 'engine', 'train',
+'church_bells', 'airplane', 'crackers', 'hand_saw', 'drilling', 'engine_idling', 'gun_shot', ' jackhammer', 'siren', 'street_music',
+'children_playing', 'air_conditioner']
+
+  medium = ['pouring_water', 'toilet_flush', 'laughing']
+
+  high = ['footsteps', 'door_knock', 'door_wood_creaks']
+
   esc50_csv = './ESC-50/meta/esc50.csv'
   pd_data = pd.read_csv(esc50_csv)
   my_classes=list(pd_data["category"].unique())
@@ -104,13 +132,27 @@ def env_classification(filepath):
 
   keras_model_path = './models'
   reloaded_model = keras.models.load_model(keras_model_path)
-  reloaded_model.predict(audio_to_spectrogram(filepath))
-  predicted_label = reloaded_model.predict(audio_to_spectrogram(filepath))
-  print(f"The predicted label is {predicted_label[0]}")
-  predicted_class = my_classes[tf.argmax(predicted_label[0])]
-  print(f"The predicted class is {predicted_class}")
-  probs = predicted_label.max(1)
-  print(f"The probability is {probs}")
+  spec = audio_to_spectrogram(filepath)
+  prediction = list(reloaded_model.predict(spec).flatten())
+  print(max(prediction))
+  print('\nPredicted class:',my_classes[prediction.index(max(prediction))])
+  predicted_class = my_classes[prediction.index(max(prediction))]
+  probs = prediction.max(1)
+  #predicted_label = reloaded_model.predict(audio_to_spectrogram(filepath))
+  #print(f"The predicted label is {predicted_label[0]}")
+  #predicted_class = my_classes[tf.argmax(predicted_label[0])]
+  #print(f"The predicted class is {predicted_class}")
+
+  noise_level = "low"
+  if predicted_class in low:
+    noise_level = "low"
+  elif predicted_class in medium:
+    noise_level = "medium"
+  else:
+    noise_level = "high"
+  #probs = predicted_label.max(1)
+
+  return predicted_class, probs, noise_level
 
 def predict(request, filepath):
   if request.method == 'POST' and filepath:
@@ -137,16 +179,33 @@ def predict(request, filepath):
       sample_float = (src_data/32768).astype(np.float32)
       flatness = librosa.feature.spectral_flatness(y=sample_float)
 
-      env_classification(filepath)
+      predicted_class, probs, noise_level = env_classification(filepath)
+      print(predicted_class)
+      try:
+        speech_probs = VAD.get_speech_prob_chunk(torch.tensor(data))
+      except:
+        print("no")
+      print(speech_probs)
+      print("What")
+      activation_pass_values = VAD.apply_threshold(speech_probs).numpy()
+      vad_prob = activation_pass_values.sum()/np.prod(activation_pass_values.shape)
+      confidence = speech_probs.numpy().sum()/np.prod(activation_pass_values.shape)
+      print("herrtre")
+      speech_detection = 'no'
+      if vad_prob > 0.5:
+        speech_detection = 'yes'
+
+      print(vad_prob)
+      response = JsonResponse({'status': 'success', 'prediction': '', 'noise_presence': 'yes', 'multi_speaker': 'yes', 
+      'noise_level': noise_level, 'speech_detection': speech_detection, 'time_taken': str(time()-mark)[:4]+' Sec'}, status=status.HTTP_200_OK)
+      """
       if np.sum(flatness)/np.prod(flatness.shape) > 0.3:
         noise_presence = 'yes'
-      return response
       # speech_probs = VAD.get_speech_prob_chunk(torch.tensor(data))
       # activation_pass_values = VAD.apply_threshold(speech_probs).numpy()
       # vad_prob = activation_pass_values.sum()/np.prod(activation_pass_values.shape)
       # confidence = speech_probs.numpy().sum()/np.prod(activation_pass_values.shape)
       # if vad_prob > 0.5:
-      """
       source_temp = Path(filepath).expanduser()
       audio_source = src.FileAudioSource(
           file=source_temp,
@@ -175,10 +234,12 @@ def predict(request, filepath):
       os.remove(current_diarization)
       os.remove(filepath)
       return response
-    """
     except:
       response = JsonResponse({'status': 'fail', 'description': 'Detection Failed!!'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
       os.remove(current_diarization)
       os.remove(filepath)
-    
-      return response
+      """
+    except:
+      response = JsonResponse({'status': 'success', 'prediction': '', 'noise_presence': 'yes',
+                            'multi_speaker': 'yes', 'noise_level':'low' ,'time_taken': str(time()-mark)[:4]+' Sec'}, status=status.HTTP_200_OK)
+    return response

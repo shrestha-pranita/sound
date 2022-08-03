@@ -16,8 +16,11 @@ from django.conf.urls import include, url
 urlpatterns = [
     path('', views.index, name='index'),
     path('api/audio',  views.audio, name = "record"),
-    path('api/arrayVAD',  views.arrayVAD, name = "arrayVAD"),
-    url('api/arrayVAD',  views.arrayVAD, name = "arrayVAD"),
+    path('api/sileroVAD',  views.sileroVAD, name = "sileroVAD"),
+    path('api/speechVAD',  views.speechVAD, name = "speechVAD"),
+    path('api/rctVAD', views.rctVAD, name = "rctVAD")
+    #path('api/arrayVAD',  views.arrayVAD, name = "arrayVAD"),
+    #url('api/arrayVAD',  views.arrayVAD, name = "arrayVAD"),
 
 ]
 

@@ -177,8 +177,9 @@ const RecordView = (props) => {
                 out.push(val);
                 }
                 samples = samples.slice(48000);
-
-                fetch(web_link+'/api/arrayVAD', {
+                //fetch(web_link+'/api/rctVAD', {
+                //fetch(web_link+'/api/speechVAD', {
+                fetch(web_link+'/api/sileroVAD', {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -192,7 +193,6 @@ const RecordView = (props) => {
                 //.then((res) => res.json())
                 .then((res) => res.json())
                 .then((res) => setResult(res))
-                //.then((res) => console.log(res.noise_presence))
                 .catch((err) => console.log(err))
             }
             };
@@ -207,15 +207,15 @@ const RecordView = (props) => {
   return (
     <>
     <h1>
-        {result.noise_presence}
         Cheating Level Alert :{" "}
-        {result.noise_presence === "yes" ? (
-          <span style={{ color: "Red" }}>Yes</span>
+
+        {result.cheating_level === "high" ? (
+          <span style={{ color: "Red" }}>High</span>
         ) : (
-          <span style={{ color: "Green" }}>No</span>
+          <span style={{ color: "Green" }}>Low</span>
         )}{" "}
         Speech Detection :{" "}
-        {result.multi_speaker === "yes" ? (
+        {result.speech_detection === "yes" ? (
           <span style={{ color: "Red" }}>Yes</span>
         ) : (
           <span style={{ color: "Green" }}>No</span>
