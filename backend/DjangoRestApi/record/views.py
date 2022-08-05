@@ -35,6 +35,9 @@ import noisereduce as nr
 from nnet.CRNN import CRNN
 import os
 
+#from .vad import predict_mul
+from .vad_test import predict_mul
+from .vad import predict_speech
 #import aiofiles
 import pandas as pd
 from fastapi import FastAPI, UploadFile
@@ -108,6 +111,7 @@ def detect(mel_feats, model, config):
 
 @api_view(['GET', 'POST'])
 def rctVAD(request):
+    """
     content= np.array(request.data["data"], np.int16)
     import conv_vad
 
@@ -155,7 +159,7 @@ def rctVAD(request):
     cheating_level = "no"
     response = JsonResponse({'status': 'success', 'prediction': '', 'speech_detection': speech_detection, 'cheating_level': cheating_level}, status=status.HTTP_200_OK)
     return response
-    """
+    
 
 """
 @app.post("/full_audio")
@@ -247,7 +251,45 @@ def rctVAD(request):
     )
     return decoded_strong[0.8][decoded_strong[0.8]["event_label"] == "Speech"]
 
-"""   
+"""  
+""" 
+@api_view(['GET', 'POST'])
+def speechVAD(request):
+    response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
+    if request.method == 'POST':
+        #filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/recordings_audio/"
+
+        #filepath = os.path.join("./recordings_audio/")
+        #filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/recordings_audio"
+        filepath = './recordings_audio'
+        if os.path.exists(filepath) == False:
+            os.makedirs(filepath)
+        #filename = filepath + "/"+ str(datetime.now()).replace(' ', '_') + '.wav'
+        filename = filepath + '/' + str(datetime.now()).replace(' ', '_').replace(':', '_') + '.wav'
+        cheating_level = "no"
+        #filename = 
+        try:
+            #with open(filename, 'wb') as file:
+             #   print("file")
+            #print(json.loads(request.data))
+            #content = np.array(json.loads(request.data), np.int16)
+            content= np.array(request.data["data"], np.int16)
+            #sf.write(filename, content, 16000)
+            #wavfile.write("./recordings_audio/"+'test.wav', 16000, content)
+            wavfile.write(filename, 16000, content)
+            #wavfile.write("./recordings_audio/"+'2022-07-10_23_21_25.893481.wav', 16000, content)
+            cheating_level = env_sound(filename)
+        except:
+            return response
+
+        val = predict_speech(request, filename)
+        if val: 
+            if val == "yes":
+                cheating_level = "yes"
+            response = JsonResponse({'status': 'success', 'prediction': '', 'speech_detection': val, 'cheating_level': cheating_level}, status=status.HTTP_200_OK)
+            return response
+        return val
+"""
 @api_view(['GET', 'POST'])
 def speechVAD(request):
     from speechbrain.pretrained import VAD
@@ -273,6 +315,7 @@ def speechVAD(request):
     
     response = JsonResponse({'status': 'success', 'prediction': '', 'speech_detection': speech_detection, 'cheating_level': cheating_level}, status=status.HTTP_200_OK)
     return response
+
 def env_sound(filename):
     
     low = ['dog', 'rooster', 'pig', 'cow', 'frog', 'cat', 'hen', 'insects', 'sheep', 'crow', 'rain', 'sea_waves',
@@ -329,7 +372,39 @@ def sileroVAD(request):
     else:
         response = JsonResponse({'status': 'success', 'prediction': '', 'speech_detection': 'no', 'cheating_level': cheating_level}, status=status.HTTP_200_OK)
     return response
+
+@api_view(['GET', 'POSt'])
+def mulspeaker1(request):
+    response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
+    if request.method == 'POST':
+        #filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/recordings_audio/"
+
+        #filepath = os.path.join("./recordings_audio/")
+        #filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/recordings_audio"
+        filepath = './recordings_audio'
+        if os.path.exists(filepath) == False:
+            os.makedirs(filepath)
+        #filename = filepath + "/"+ str(datetime.now()).replace(' ', '_') + '.wav'
+        filename = filepath + '/' + str(datetime.now()).replace(' ', '_').replace(':', '_') + '.wav'
+        #filename = 
+        try:
+            #with open(filename, 'wb') as file:
+             #   print("file")
+            #print(json.loads(request.data))
+            #content = np.array(json.loads(request.data), np.int16)
+            content= np.array(request.data["data"], np.int16)
+            #sf.write(filename, content, 16000)
+            #wavfile.write("./recordings_audio/"+'test.wav', 16000, content)
+            wavfile.write(filename, 16000, content)
+            #wavfile.write("./recordings_audio/"+'2022-07-10_23_21_25.893481.wav', 16000, content)
+        except:
+            return response
+        val = predict_mul(request, filename)
+        print(val)
+        return val
 """
+
+
 @api_view(['GET','POST'])
 def arrayVAD(request):
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
