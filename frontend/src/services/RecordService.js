@@ -32,6 +32,10 @@ const recordaudio = () => {
   return http.get("/audio");
 };
 
+const speaker_rec1_sample = () => {
+  return http.get("/speakerSample");
+};
+
 
 const RecordService = {
   vad1,
@@ -41,7 +45,8 @@ const RecordService = {
   mul_speaker1,
   mul_speaker2,
   speaker_rec1,
-  recordaudio
+  recordaudio,
+  speaker_rec1_sample
 };
 
 export default RecordService;

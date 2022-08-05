@@ -115,6 +115,65 @@ const RecordView = (props) => {
   </button>;
   };
 
+  const ButtonSpeakerStart = () => {
+    return <button
+    style={{
+      padding: "0.8rem 2rem",
+      border: "none",
+      marginLeft: "15px",
+      fontSize: "1rem",
+      cursor: "pointer",
+      borderRadius: "5px",
+      fontWeight: "bold",
+      backgroundColor: "#42b72a",
+      color: "white",
+      transition: "all 300ms ease-in-out",
+      transform: "translateY(0)"
+    }}
+    onClick={() => {
+      if (!isActive) {
+        startRecording();
+        //predictSwitch();
+      } else {
+        pauseRecording();
+      }
+
+      setIsActive(!isActive);
+    }}
+  >
+    {isActive ? "Pause" : "Start"}
+  </button>;
+  };
+
+  const ButtonSpeakerStop = () => {
+    return   <button
+    style={{
+      padding: "0.8rem 2rem",
+      border: "none",
+      backgroundColor: "#df3636",
+      marginLeft: "15px",
+      fontSize: "1rem",
+      cursor: "pointer",
+      color: "white",
+      borderRadius: "5px",
+      fontWeight: "bold",
+      transition: "all 300ms ease-in-out",
+      transform: "translateY(0)"
+    }}
+    onClick={() => {
+      pauseRecording();
+      //stopRecording();
+      onStopRec();
+      setIsActive(!isActive);
+    }}
+  >
+    Stop
+  </button>;
+  };
+
+
+ 
+
   function stopTimer() {
     setIsActive(false);
     setCounter(0);
@@ -180,7 +239,7 @@ const RecordView = (props) => {
                 samples = samples.slice(48000);
                 //fetch(web_link+'/api/rctVAD', {
                 //fetch(web_link+'/api/speechVAD', {
-                fetch(web_link+'/api/speakerrec1', {
+                fetch(web_link+'/api/sileroVAD', {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -211,16 +270,54 @@ const RecordView = (props) => {
       <Header></Header> 
     </div>
     <h1>
-        Similar Speaker :{" "}
+        Cheating Level Alert :{" "}
 
-        {result.speaker_reco === "no" ? (
-          <span style={{ color: "Red" }}>No</span>
+        {result.cheating_level === "high" ? (
+          <span style={{ color: "Red" }}>High</span>
         ) : (
-          <span style={{ color: "Green" }}>Yes</span>
+          <span style={{ color: "Green" }}>Low</span>
         )}{" "}
-
+        Speech Detection :{" "}
+        {result.speech_detection === "yes" ? (
+          <span style={{ color: "Red" }}>Yes</span>
+        ) : (
+          <span style={{ color: "Green" }}>No</span>
+        )}{" "}
       </h1>
-    <h2>Speaker Recognition 1</h2>
+    <h2>VAD 1</h2>
+    <h2>Best Model</h2>
+
+    <div style={{ marginLeft: "70px", fontSize: "54px" }}>
+        <span className="minute">{minute}</span>
+        <span>:</span>
+        <span className="second">{second}</span>
+    </div>
+
+    <div style={{ marginLeft: "20px", display: "flex" }}>
+        <label
+        style={{
+            fontSize: "15px",
+            fontWeight: "Normal"
+            // marginTop: "20px"
+        }}
+        htmlFor="icon-button-file"
+        >
+        <h3 style={{ marginLeft: "15px", fontWeight: "normal" }}>
+            Press the Start to record
+        </h3>
+
+        <div>
+            <ButtonSpeakerStart/>
+            <ButtonSpeakerStop/>
+            
+        </div>
+        <div style={{ height: "38px",marginTop: "200px", marginLeft: "150px"}}>
+            {" "}
+            <video src={mediaBlobUrl} controls loop />
+        </div>
+        </label>
+    </div>
+
     <div
       style={{
         border: "1px solid black",

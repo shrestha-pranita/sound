@@ -34,9 +34,9 @@ import noisereduce as nr
 #from model import SEDTask4_2021
 from nnet.CRNN import CRNN
 import os
-
+from speechbrain.pretrained import SpeakerRecognition
 #from .vad import predict_mul
-from .vad_test import predict_mul
+from .vad1 import predict_mul
 from .vad import predict_speech
 #import aiofiles
 import pandas as pd
@@ -159,7 +159,62 @@ def rctVAD(request):
     cheating_level = "no"
     response = JsonResponse({'status': 'success', 'prediction': '', 'speech_detection': speech_detection, 'cheating_level': cheating_level}, status=status.HTTP_200_OK)
     return response
-    
+
+@api_view(['GET', 'POST'])
+def speakerrec1(request):
+    response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
+    if request.method == 'POST':
+        RATE = 16000
+        #filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/recordings_audio/"
+        #filepath = os.path.join("./recordings_audio/")
+        #filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/recordings_audio"
+        filepath = './speaker_audio'
+        if os.path.exists(filepath) == False:
+            os.makedirs(filepath)
+        #filename = filepath + "/"+ str(datetime.now()).replace(' ', '_') + '.wav'
+        filename = filepath + '/' + str(datetime.now()).replace(' ', '_').replace(':', '_') + '.wav'
+        speaker_audio = filepath + '/' + 'speaker2.wav'
+        cheating_level = "no"
+        #filename = 
+        speaker_reco = "yes"
+
+        try:
+            #with open(filename, 'wb') as file:
+             #   print("file")
+            #print(json.loads(request.data))
+            #content = np.array(json.loads(request.data), np.int16)
+            content= np.array(request.data["data"], np.int16)
+            model = torch.load('models/models/silero_vad.jit')
+            speech_timestamps = get_speech_timestamps(content, model, sampling_rate=RATE)
+            if (len(speech_timestamps) > 0):
+
+                #sf.write(filename, content, 16000)
+                #wavfile.write("./recordings_audio/"+'test.wav', 16000, content)
+                wavfile.write(filename, 16000, content)
+                #wavfile.write("./recordings_audio/"+'2022-07-10_23_21_25.893481.wav', 16000, content)
+
+                verification = SpeakerRecognition.from_hparams(source="speechbrain/spkrec-ecapa-voxceleb", savedir="pretrained_models/spkrec-ecapa-voxceleb")
+
+                #score, prediction = verification.verify_files("123.wav", "datasets/SI1265_FJWB0_2.wav") # Different Speakers
+                #score, prediction = verification.verify_files("tests/samples/ASR/spk1_snt1.wav", "tests/samples/ASR/spk1_snt2.wav") # Same Speaker
+                score, prediction = verification.verify_files(speaker_audio, filename)
+                check = prediction.numpy()[0]
+
+                if check == True:
+                    speaker_reco = "yes"
+                else:
+                    speaker_reco = "no"
+                print(speaker_reco)
+                
+                response = JsonResponse({'status': 'success', 'prediction': '', 'speaker_reco': speaker_reco}, status=status.HTTP_200_OK)
+                os.remove(filename)
+                return response
+            else:
+                response = JsonResponse({'status': 'success', 'prediction': '', 'speaker_reco': speaker_reco}, status=status.HTTP_200_OK)
+                return response
+        except:
+            return response
+
 
 """
 @app.post("/full_audio")
@@ -435,3 +490,33 @@ def arrayVAD(request):
         print(val)
         return val
 """
+
+@api_view(['GET', 'POST'])
+def speakerSample(request):
+    response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
+    if request.method == 'POST':
+        #filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/recordings_audio/"
+
+        #filepath = os.path.join("./recordings_audio/")
+        #filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/recordings_audio"
+        filepath = './speaker_audio'
+        if os.path.exists(filepath) == False:
+            os.makedirs(filepath)
+        #filename = filepath + "/"+ str(datetime.now()).replace(' ', '_') + '.wav'
+        filename = filepath + '/' + 'speaker.wav'
+        #filename = 
+        try:
+            print(request.files)
+            #with open(filename, 'wb') as file:
+             #   print("file")
+            #print(json.loads(request.data))
+            #content = np.array(json.loads(request.data), np.int16)
+            print(request.data)
+            print(request.data["data"])
+            content= np.array(request.data, np.int16)
+            #sf.write(filename, content, 16000)
+            #wavfile.write("./recordings_audio/"+'test.wav', 16000, content)
+            wavfile.write(filename, 16000, content)
+            #wavfile.write("./recordings_audio/"+'2022-07-10_23_21_25.893481.wav', 16000, content)
+        except:
+            return response

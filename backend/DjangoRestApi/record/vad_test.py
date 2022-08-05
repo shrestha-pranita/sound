@@ -141,7 +141,7 @@ VAD = VAD.from_hparams(source="speechbrain/vad-crdnn-libriparty",
   #      hprams.data.n_mfcc,
    #     get_melkwargs()
 #)
-
+"""
 config = PipelineConfig(
     step=0.5,
     latency=0.5,
@@ -152,8 +152,7 @@ config = PipelineConfig(
     beta=10,
     max_speakers=5
 )
-
-
+"""
 """
 pipeline = OnlineSpeakerDiarization(
     step=0.5,
@@ -166,6 +165,17 @@ pipeline = OnlineSpeakerDiarization(
     max_speakers=5,
 )
 """
+
+pipeline = OnlineSpeakerDiarization(
+    step=0.5,
+    latency=0.5,
+    tau_active=0.555,
+    rho_update=0.422,
+    delta_new=1.517,
+    gamma=3,
+    beta=10,
+    max_speakers=5
+)
 
 
 
