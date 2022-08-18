@@ -4,13 +4,13 @@ import { Link, Redirect } from 'react-router-dom';
 import axios from 'axios';
 //import web_link from '../web_link';
 //import { Empty, Pagination } from 'antd';
-import Test from "../components/TestView";
+import Login from "../components/LoginView";
 
-export default class TestPage extends Component {
+export default class LoginPage extends Component {
   render() {
      
     return (
-      <Test/>
+      <Login/>
     );
   }
 }

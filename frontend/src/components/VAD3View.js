@@ -2,13 +2,11 @@ import { useReactMediaRecorder } from "react-media-recorder";
 import React, { useEffect, useState } from "react";
 import  web_link from "../web_link";
 import axios from "axios";
-import { Link, Redirect } from "react-router-dom";
 import Header from '../elements/header';
 
 
 let samples = [];
 let localMic, context, source, processor;
-const PREDICTAPI = process.env.NEXT_PUBLIC_BACKEND_BASE_URL;
 
 const RecordView = (props) => {
   const [second, setSecond] = useState("00");
@@ -122,21 +120,6 @@ const RecordView = (props) => {
     setMinute("00");
   }
 
-  function testclick() {
-    console.log("here")
-    axios({
-        method: "get",
-        url: web_link + '/api/audio',
-      })
-        .then((response) => {
-          this.setState({
-            recordings: response.data,
-          });
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-  }
 
   const {
     status,
@@ -150,6 +133,7 @@ const RecordView = (props) => {
     echoCancellation: true
   });
 
+  /*
   const convertFileToBase64 = (file) =>
     new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -162,7 +146,7 @@ const RecordView = (props) => {
         });
       reader.onerror = reject;
     });
-
+    */
     const predictSwitch = () => {
             processor = context.createScriptProcessor(16384, 1, 1);
             source.connect(processor);

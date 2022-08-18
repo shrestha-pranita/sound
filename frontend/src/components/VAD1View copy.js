@@ -6,7 +6,7 @@ import Header from '../elements/header';
 
 
 let samples = [];
-let localMic, context, source, processor;
+let context, source, processor;
 
 const RecordView = (props) => {
   const [second, setSecond] = useState("00");
@@ -14,6 +14,18 @@ const RecordView = (props) => {
   const [isActive, setIsActive] = useState(false);
   const [counter, setCounter] = useState(0);
   const [result, setResult] = useState({});
+  const myOnnxSession = new onnx.InferenceSession();
+  // load the ONNX model file
+  myOnnxSession.loadModel("../../assets/silero_vad.onnx").then(() => {
+    // generate model input
+    const inferenceInputs = getInputs();
+    // execute the model
+    myOnnxSession.run(inferenceInputs).then((output) => {
+      // consume the output
+      const outputTensor = output.values().next().value;
+      console.log(`model output tensor: ${outputTensor.data}.`);
+    });
+  });
 
   useEffect(() => {
     let intervalId;
@@ -120,6 +132,7 @@ const RecordView = (props) => {
     setMinute("00");
   }
 
+
   const {
     status,
     startRecording,
@@ -152,18 +165,71 @@ const RecordView = (props) => {
             processor.connect(context.destination);
             processor.onaudioprocess = (e) => {
             samples = [...samples, ...e.inputBuffer.getChannelData(0)];
-            if (samples.length > 48000) {
+            //if (samples.length > 48000) {
+              if (samples.length > 48000) {
                 let out = [];
-                for (let i = 0; i < 48000; i += 3) {
+                //for (let i = 0; i < 48000; i += 3) {
+                  for (let i = 0; i < 48000; i += 3) {
                 let val = Math.floor(32767 * samples[i]);
                 val = Math.min(32767, val);
                 val = Math.max(-32768, val);
                 out.push(val);
                 }
+                //var data_array = Array();
+                //data_array[0] = out.slice(0,5000);
+                //data_array[1] = out.slice(5000,10000);
+                //data_array[2] = out.slice(10000,15000);
+                //data_array[3] = out.slice(15000,16001);
+                //const blob = new Blob([out], {type: 'text/plain'});
+                //let welcome = new Uint8Array(out); // "Welcome" in binary form
+                //let blob = new Blob([out], {type: 'text/plain'});
+                //console.log(blob)
                 samples = samples.slice(48000);
+                
+                fetch(web_link+'/api/sileroVAD', {
+                  method: "POST",
+                  headers: {
+                      "Content-Type": "application/json",
+                      //'Access-Control-Allow-Origin': 'http://localhost:8000',
+                      //'Access-Control-Allow-Credentials': 'true'
+                  },
+                  body: JSON.stringify({
+                      data: out,
+                      //check: id
+                  }),
+                  })
+                  //.then((res) => res.json())
+                  .then((res) => res.json())
+                  .then((res) => setResult(res))
+                  .catch((err) => console.log(err))
+                
+                
+                //const posts = [1,2,3,4,5];
+                /*
+                const posts = [0,1,2,3]
+                for (var id in posts) {
+                  fetch(web_link+'/api/sileroVAD', {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        //'Access-Control-Allow-Origin': 'http://localhost:8000',
+                        //'Access-Control-Allow-Credentials': 'true'
+                    },
+                    body: JSON.stringify({
+                        data: data_array[id],
+                        check: id
+                    }),
+                    })
+                    //.then((res) => res.json())
+                    .then((res) => res.json())
+                    .then((res) => setResult(res))
+                    .catch((err) => console.log(err))
+                  }
+                  */
                 //fetch(web_link+'/api/rctVAD', {
                 //fetch(web_link+'/api/speechVAD', {
-                fetch(web_link+'/api/speakerrec1', {
+                  /*
+                fetch(web_link+'/api/sileroVAD', {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -171,14 +237,16 @@ const RecordView = (props) => {
                     //'Access-Control-Allow-Credentials': 'true'
                 },
                 body: JSON.stringify({
-                    data: out,
+                    data: blob,
                 }),
                 })
                 //.then((res) => res.json())
                 .then((res) => res.json())
                 .then((res) => setResult(res))
                 .catch((err) => console.log(err))
+              */
             }
+            
             };
         };
 
@@ -194,16 +262,22 @@ const RecordView = (props) => {
       <Header></Header> 
     </div>
     <h1>
-        Similar Speaker :{" "}
+        Cheating Level Alert :{" "}
 
-        {result.speaker_reco === "no" ? (
-          <span style={{ color: "Red" }}>No</span>
+        {result.cheating_level === "high" ? (
+          <span style={{ color: "Red" }}>High</span>
         ) : (
-          <span style={{ color: "Green" }}>Yes</span>
+          <span style={{ color: "Green" }}>Low</span>
         )}{" "}
-
+        Speech Detection :{" "}
+        {result.speech_detection === "yes" ? (
+          <span style={{ color: "Red" }}>Yes</span>
+        ) : (
+          <span style={{ color: "Green" }}>No</span>
+        )}{" "}
       </h1>
-    <h2>Speaker Recognition 1</h2>
+    <h2>VAD 1</h2>
+    <h2>Best Model</h2>
     <div
       style={{
         border: "1px solid black",

@@ -1,7 +1,11 @@
 import http from "../http-common";
 
-const vad1 = () => {
+const login = () => {
   return http.get("/");
+};
+
+const login1 = () => {
+  return http.get("/login");
 };
 
 const vad1_record = () => {
@@ -28,8 +32,24 @@ const speaker_rec1 = () => {
   return http.get("/speakerrec1");
 };
 
+const speaker_sample = () => {
+  return http.get("/speakersample");
+};
+
+const noise_detection = () => {
+  return http.get("/noisedetection");
+};
+
 const recordaudio = () => {
   return http.get("/audio");
+};
+
+const test_page = () => {
+  return http.get("/test");
+};
+
+const speech_page = () => {
+  return http.get("/speech");
 };
 
 const speaker_rec1_sample = () => {
@@ -38,6 +58,8 @@ const speaker_rec1_sample = () => {
 
 
 const RecordService = {
+  login,
+  login1,
   vad1,
   vad1_record,
   vad2_record,
@@ -46,7 +68,9 @@ const RecordService = {
   mul_speaker2,
   speaker_rec1,
   recordaudio,
-  speaker_rec1_sample
+  speaker_rec1_sample,
+  test_page,
+  speech_page,
 };
 
 export default RecordService;

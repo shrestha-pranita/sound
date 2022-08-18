@@ -120,6 +120,7 @@ const RecordView = (props) => {
     setMinute("00");
   }
 
+
   const {
     status,
     startRecording,
@@ -132,7 +133,6 @@ const RecordView = (props) => {
     echoCancellation: true
   });
 
-  /*
   const convertFileToBase64 = (file) =>
     new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -145,7 +145,7 @@ const RecordView = (props) => {
         });
       reader.onerror = reject;
     });
-    */
+
     const predictSwitch = () => {
             processor = context.createScriptProcessor(16384, 1, 1);
             source.connect(processor);
@@ -163,7 +163,7 @@ const RecordView = (props) => {
                 samples = samples.slice(48000);
                 //fetch(web_link+'/api/rctVAD', {
                 //fetch(web_link+'/api/speechVAD', {
-                fetch(web_link+'/api/speakerrec1', {
+                fetch(web_link+'/api/noisedetection', {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -194,16 +194,16 @@ const RecordView = (props) => {
       <Header></Header> 
     </div>
     <h1>
-        Similar Speaker :{" "}
+        Noise Presence :{" "}
 
-        {result.speaker_reco === "no" ? (
-          <span style={{ color: "Red" }}>No</span>
+        {result.noise_presence === "yes" ? (
+          <span style={{ color: "Red" }}>Yes</span>
         ) : (
-          <span style={{ color: "Green" }}>Yes</span>
+          <span style={{ color: "Green" }}>No</span>
         )}{" "}
 
       </h1>
-    <h2>Speaker Recognition 1</h2>
+    <h2>Noise Presence</h2>
     <div
       style={{
         border: "1px solid black",

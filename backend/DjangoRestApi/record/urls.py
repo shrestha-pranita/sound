@@ -18,7 +18,13 @@ urlpatterns = [
     path('api/audio',  views.audio, name = "record"),
     path('api/sileroVAD',  views.sileroVAD, name = "sileroVAD"),
     path('api/speechVAD',  views.speechVAD, name = "speechVAD"),
-    path('api/rctVAD', views.rctVAD, name = "rctVAD")
+    path('api/rctVAD', views.rctVAD, name = "rctVAD"),
+    path('api/mulspeaker1', views.mulspeaker1, name="mulspeaker1"),
+    path('api/speakerrec1', views.speakerrec1, name="speakerrec1"),
+    path('api/speakerSample', views.speakerSample, name="speakerSample"),
+    path('api/noisedetection', views.noisedetection, name="noisedetection"),
+    path('api/test',  views.test, name = "test"),
+     path('api/speech', views.speechCheck, name="speechCheck"),
     #path('api/arrayVAD',  views.arrayVAD, name = "arrayVAD"),
     #url('api/arrayVAD',  views.arrayVAD, name = "arrayVAD"),
 

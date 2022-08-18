@@ -12,6 +12,9 @@ import torch
 from utils_vad import get_speech_timestamps, read_audio
 #import pyaudio
 from time import time
+import scipy.signal as sps
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 
 import keras
 from keras.models import Model
@@ -24,26 +27,32 @@ import pickle
 import librosa
 import torch
 import yaml
-from dataio.datasets import read_audio
+from dataio.datasets import read_audio as read_audio1
 from local.utils import batched_decode_preds
 from torchaudio.transforms import AmplitudeToDB, MelSpectrogram
 import noisereduce as nr
-#from utils.scaler import TorchScaler
-#from utils.encoder import ManyHotEncoder
 
+#from utils.scaler import TorchScaler
+#from utils
+import scipy.io.wavfile
 #from model import SEDTask4_2021
 from nnet.CRNN import CRNN
 import os
 from speechbrain.pretrained import SpeakerRecognition
 #from .vad import predict_mul
 from .vad1 import predict_mul
+#from .vad1 import predict_noise_detection
 from .vad import predict_speech
 #import aiofiles
 import pandas as pd
 from fastapi import FastAPI, UploadFile
 
 from predict import load_model
+import wave
+from utils.encoder import ManyHotEncoder
+from django.core.files.storage import FileSystemStorage
 
+model = torch.load('models/models/silero_vad.jit')
 @api_view(['GET'])
 def index(request):
     return HttpResponse('Recording Page')
@@ -55,6 +64,17 @@ def audio(request):
     })
     return "here"
     print("here")
+
+@api_view(['GET', 'POST'])
+def test(request):
+    print(request)
+    print(request.data)
+    if request.method =="POST":
+        print("no")
+        response = JsonResponse({'status': 'success', 'result':'test'}, status=status.HTTP_200_OK)
+        return response
+    else:
+        print("what")
 
 def get_melspectrogram_db(file_path, sr=None, n_fft=2048, hop_length=512, n_mels=128, fmin=20, fmax=8300, top_db=80):
 
@@ -110,6 +130,60 @@ def detect(mel_feats, model, config):
 
 
 @api_view(['GET', 'POST'])
+def speechCheck(request):
+    response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
+    filepath = "./upload/"
+    RATE = 16000 
+    print("here")
+    for filename in os.listdir(filepath):
+        model = torch.load('models/models/silero_vad.jit')
+        model.reset_states()
+        audio_path = filepath + filename 
+        print("no")
+        wav = read_audio(audio_path, RATE)
+        print("that")
+        # get speech timestamps from full audio file
+        speech_timestamps = get_speech_timestamps(wav, model, sampling_rate=RATE)
+        print("where")
+        print(speech_timestamps)
+        #samplerate, data = wavfile.read(filepath + filename)
+
+        #content= np.array(data, np.int16)
+        #wavfile.write(filename, 16000, content)
+        #model = torch.load('models/models/silero_vad.jit')
+        #model.reset_states() 
+
+        #speech_timestamps = get_speech_timestamps(content, model, sampling_rate=RATE)
+        if (len(speech_timestamps) > 0):
+            print(speech_timestamps)
+            response = JsonResponse({'status': 'success', 'prediction': '', 'speech_detection': 'yes', 'cheating_level': "high"}, status=status.HTTP_200_OK)
+        else:
+            response = JsonResponse({'status': 'success', 'prediction': '', 'speech_detection': 'no', 'cheating_level': cheating_level}, status=status.HTTP_200_OK)
+        os.remove(filename)
+
+    """
+    if request.method == "POST":
+        sr = 16000
+        data = request.data["File"]
+        filepath = './upload'
+        if os.path.exists(filepath) == False:
+            os.makedirs(filepath)
+        name = filepath + "/" + str(datetime.now()).replace(' ', '_').replace(':', '_') + '.wav'
+        with open(name, 'wb+') as destination:
+            for chunk in data.chunks():
+                destination.write(chunk)
+        scipy.io.wavfile.write(name, sr, data)
+        #audio = wave.open(name, "wb")
+        #audio.setnchannels(1)
+        #audio.write(request.data["File"])
+        try:
+            print("no")
+        except:
+            return response
+    else:
+        return response
+    """
+@api_view(['GET', 'POST'])
 def rctVAD(request):
     """
     content= np.array(request.data["data"], np.int16)
@@ -126,39 +200,74 @@ def rctVAD(request):
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     return response
     """
-    OUTPUT_DIR = "chunks/"
-    FULL_AUDIO = "final/"
+    """
+    response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
+    if request.method == "POST":
+        try:
+            OUTPUT_DIR = "chunks/"
+            FULL_AUDIO = "final/"
 
-    #app = FastAPI()
+            #app = FastAPI()
 
-    model = load_model()
-    
-    filepath = './recordings_audio'
-    filename = filepath + '/' + str(datetime.now()).replace(' ', '_').replace(':', '_') + '.wav'
-    content= np.array(request.data["data"], np.int16)
+            model = load_model()
+            
+            filepath = './recordings_audio'
+            filename = filepath + '/' + str(datetime.now()).replace(' ', '_').replace(':', '_') + '.wav'
+            content= np.array(request.data["data"], np.int16)
 
-    wavfile.write(filename, 16000, content)
+            wavfile.write(filename, 16000, content)
 
-    #file_path = os.path.join(OUTPUT_DIR, file.filename)
-    #with open(file_path, "wb") as f:
-    #    f.write(file.file.read())
+            #file_path = os.path.join(OUTPUT_DIR, file.filename)
+            #with open(file_path, "wb") as f:
+            #    f.write(file.file.read())
 
-    prediction: pd.DataFrame = model.predict(filename)
-    os.remove(filename)
+            prediction: pd.DataFrame = model.predict(filename)
+            os.remove(filename)
 
-    total_speech_time = 0
-    for index, row in prediction.iterrows():
-        total_speech_time += row["offset"] - row["onset"]
-        print(total_speech_time)
+            total_speech_time = 0
+            for index, row in prediction.iterrows():
+                total_speech_time += row["offset"] - row["onset"]
+                print(total_speech_time)
 
-    if total_speech_time >= 0.8:
-        speech_detection = "yes"
+            if total_speech_time >= 0.8:
+                speech_detection = "yes"
+            else:
+                speech_detection = "no"
+            print(speech_detection)
+            cheating_level = "no"
+            response = JsonResponse({'status': 'success', 'prediction': '', 'speech_detection': speech_detection, 'cheating_level': cheating_level}, status=status.HTTP_200_OK)
+            return response
+        except:
+            return response
     else:
-        speech_detection = "no"
-    print(speech_detection)
-    cheating_level = "no"
-    response = JsonResponse({'status': 'success', 'prediction': '', 'speech_detection': speech_detection, 'cheating_level': cheating_level}, status=status.HTTP_200_OK)
-    return response
+        return response
+    """
+
+@api_view(['GET', 'POST'])
+def noisedetection(request):
+    noise_presence = "no"
+    response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
+    if request.method == 'POST':
+        RATE = 16000
+        SAMPLE_RATE = 16000
+        filepath = './recordings_audio'
+        if os.path.exists(filepath) == False:
+            os.makedirs(filepath)
+        filename = filepath + '/' + str(datetime.now()).replace(' ', '_').replace(':', '_') + '.wav'
+        content= np.array(request.data["data"], np.int16)
+        wavfile.write(filename, 16000, content)
+
+        try:
+            #noise_presence= predict_noise_detection(request, filename)
+            response = JsonResponse({'status': 'success', 'prediction': '', 'noise_presence': noise_presence}, status=status.HTTP_200_OK)
+            return response
+        except:
+            response = JsonResponse({'status': 'success', 'prediction': '', 'noise_presence': noise_presence}, status=status.HTTP_200_OK)
+            return response
+    else:
+        response = JsonResponse({'status': 'success', 'prediction': '', 'noise_presence': noise_presence}, status=status.HTTP_200_OK)
+        return response
+
 
 @api_view(['GET', 'POST'])
 def speakerrec1(request):
@@ -224,7 +333,7 @@ def full_audio(file: UploadFile):
         f.write(file.file.read())
 """
 
-"""
+
 @api_view(['GET', 'POSt'])
 def rctVAD(request):
     filepath = './recordings_audio'
@@ -270,7 +379,7 @@ def rctVAD(request):
         )
 
 
-    audio, _ = read_audio(
+    audio, _ = read_audio1(
         filename,
         multisrc=False,
         random_channel=False,  # pad_to=2 * 16000
@@ -306,7 +415,7 @@ def rctVAD(request):
     )
     return decoded_strong[0.8][decoded_strong[0.8]["event_label"] == "Speech"]
 
-"""  
+ 
 """ 
 @api_view(['GET', 'POST'])
 def speechVAD(request):
@@ -347,29 +456,36 @@ def speechVAD(request):
 """
 @api_view(['GET', 'POST'])
 def speechVAD(request):
-    from speechbrain.pretrained import VAD
-    filepath = './recordings_audio'
-    filename = filepath + '/' + str(datetime.now()).replace(' ', '_').replace(':', '_') + '.wav'
-    content= np.array(request.data["data"], np.int16)
-    wavfile.write(filename, 16000, content)
-    VAD = VAD.from_hparams(source="speechbrain/vad-crdnn-libriparty", savedir="pretrained_models/vad-crdnn-libriparty")
-    #boundaries = VAD.get_speech_segments("speechbrain/vad-crdnn-libriparty/example_vad.wav")
-    boundaries = VAD.get_speech_segments(filename)
-    #print(len(boundaries))
-    #print(VAD.save_boundaries(boundaries))
-    cheating_level = env_sound(filename)
-    if len(boundaries) == 0:
-        speech_detection = "no"
+    response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
+    if request.method == "POST":
+        try:
+            from speechbrain.pretrained import VAD
+            filepath = './recordings_audio'
+            filename = filepath + '/' + str(datetime.now()).replace(' ', '_').replace(':', '_') + '.wav'
+            content= np.array(request.data["data"], np.int16)
+            wavfile.write(filename, 16000, content)
+            VAD = VAD.from_hparams(source="speechbrain/vad-crdnn-libriparty", savedir="pretrained_models/vad-crdnn-libriparty")
+            #boundaries = VAD.get_speech_segments("speechbrain/vad-crdnn-libriparty/example_vad.wav")
+            boundaries = VAD.get_speech_segments(filename)
+            #print(len(boundaries))
+            #print(VAD.save_boundaries(boundaries))
+            cheating_level = env_sound(filename)
+            if len(boundaries) == 0:
+                speech_detection = "no"
+            else:
+                speech_detection = "yes"
+                cheating_level = "high"
+            #print(speech_detection)
+            # Print the output
+            #print(VAD.save_boundaries(boundaries))\
+            #cheating_level = "low"
+            
+            response = JsonResponse({'status': 'success', 'prediction': '', 'speech_detection': speech_detection, 'cheating_level': cheating_level}, status=status.HTTP_200_OK)
+            return response
+        except:
+            return response
     else:
-        speech_detection = "yes"
-        cheating_level = "high"
-    #print(speech_detection)
-    # Print the output
-    #print(VAD.save_boundaries(boundaries))\
-    #cheating_level = "low"
-    
-    response = JsonResponse({'status': 'success', 'prediction': '', 'speech_detection': speech_detection, 'cheating_level': cheating_level}, status=status.HTTP_200_OK)
-    return response
+        return response
 
 def env_sound(filename):
     
@@ -400,10 +516,10 @@ def env_sound(filename):
         return "medium"
     else:
         return "high"
-
+"""
 @api_view(['GET', 'POST'])
 def sileroVAD(request):
-
+    response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     #env_model = load_model("models/esc50_.46_0.7929_0.8050.hdf5")
     mark = time()
     CHUNK = 1024
@@ -414,19 +530,71 @@ def sileroVAD(request):
     WAVE_OUTPUT_FILENAME = "test.wav"
     NFRAMES = int((RATE * RECORD_SECONDS) / CHUNK)
     #content = np.array(json.loads(request.data), np.int16)
+    
     filepath = './recordings_audio'
-    filename = filepath + '/' + str(datetime.now()).replace(' ', '_').replace(':', '_') + '.wav'
-    content= np.array(request.data["data"], np.int16)
-    wavfile.write(filename, 16000, content)
-    model = torch.load('models/models/silero_vad.jit')
-    cheating_level = env_sound(filename)
+    if int(request.data["check"]) < 4:
+        print("what")
+        file = open(filepath +"/sample.txt", "a")
 
-    speech_timestamps = get_speech_timestamps(content, model, sampling_rate=RATE)
-    if (len(speech_timestamps) > 0):
-        response = JsonResponse({'status': 'success', 'prediction': '', 'speech_detection': 'yes', 'cheating_level': "high"}, status=status.HTTP_200_OK)
+        # Saving the array in a text file
+        content = str(request.data["data"])
+        file.write(content)
+        file.close()
+        return response
     else:
-        response = JsonResponse({'status': 'success', 'prediction': '', 'speech_detection': 'no', 'cheating_level': cheating_level}, status=status.HTTP_200_OK)
-    return response
+        with open("sample.txt") as f:
+            contents = f.readlines()
+        print(contents)
+        filename = filepath + '/' + str(datetime.now()).replace(' ', '_').replace(':', '_') + '.wav'
+        content= np.array(request.data["data"], np.int16)
+        wavfile.write(filename, 16000, content)
+        model = torch.load('models/models/silero_vad.jit')
+        cheating_level = env_sound(filename)
+
+        speech_timestamps = get_speech_timestamps(content, model, sampling_rate=RATE)
+        if (len(speech_timestamps) > 0):
+            response = JsonResponse({'status': 'success', 'prediction': '', 'speech_detection': 'yes', 'cheating_level': "high"}, status=status.HTTP_200_OK)
+        else:
+            response = JsonResponse({'status': 'success', 'prediction': '', 'speech_detection': 'no', 'cheating_level': cheating_level}, status=status.HTTP_200_OK)
+        return response
+"""
+
+@api_view(['GET', 'POST'])
+def sileroVAD(request):
+    response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
+    if request.method == "POST":
+        try:
+            #env_model = load_model("models/esc50_.46_0.7929_0.8050.hdf5")
+            mark = time()
+            CHUNK = 1024
+            #FORMAT = pyaudio.paInt32
+            CHANNELS = 1
+            RATE = 16000 
+            RECORD_SECONDS = 3
+            WAVE_OUTPUT_FILENAME = "test.wav"
+            NFRAMES = int((RATE * RECORD_SECONDS) / CHUNK)
+            model = torch.load('models/models/silero_vad.jit')
+            #content = np.array(json.loads(request.data), np.int16)
+            filepath = './recordings_audio'
+            filename = filepath + '/' + str(datetime.now()).replace(' ', '_').replace(':', '_') + '.wav'
+            content= np.array(request.data["data"], np.int16)
+            wavfile.write(filename, 16000, content)
+            #model = torch.load('models/models/silero_vad.jit')
+            model.reset_states() 
+            cheating_level = env_sound(filename)
+
+            speech_timestamps = get_speech_timestamps(content, model, sampling_rate=RATE)
+            if (len(speech_timestamps) > 0):
+                response = JsonResponse({'status': 'success', 'prediction': '', 'speech_detection': 'yes', 'cheating_level': "high"}, status=status.HTTP_200_OK)
+            else:
+                response = JsonResponse({'status': 'success', 'prediction': '', 'speech_detection': 'no', 'cheating_level': cheating_level}, status=status.HTTP_200_OK)
+            os.remove(filename)
+            
+            return response
+        except:
+            return response
+    else:
+        return response
 
 @api_view(['GET', 'POSt'])
 def mulspeaker1(request):
@@ -495,28 +663,23 @@ def arrayVAD(request):
 def speakerSample(request):
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     if request.method == 'POST':
-        #filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/recordings_audio/"
-
-        #filepath = os.path.join("./recordings_audio/")
-        #filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/recordings_audio"
         filepath = './speaker_audio'
         if os.path.exists(filepath) == False:
             os.makedirs(filepath)
+
         #filename = filepath + "/"+ str(datetime.now()).replace(' ', '_') + '.wav'
-        filename = filepath + '/' + 'speaker.wav'
+        filename = filepath + '/' + 'speaker123.wav'
+        f_name = "speaker123.wav"
+
         #filename = 
         try:
-            print(request.files)
-            #with open(filename, 'wb') as file:
-             #   print("file")
-            #print(json.loads(request.data))
-            #content = np.array(json.loads(request.data), np.int16)
-            print(request.data)
-            print(request.data["data"])
-            content= np.array(request.data, np.int16)
-            #sf.write(filename, content, 16000)
-            #wavfile.write("./recordings_audio/"+'test.wav', 16000, content)
-            wavfile.write(filename, 16000, content)
-            #wavfile.write("./recordings_audio/"+'2022-07-10_23_21_25.893481.wav', 16000, content)
+            fs = FileSystemStorage(location=filepath) #defaults to   MEDIA_ROOT  
+            detail = request.META['HTTP_USER_AGENT']
+            if os.path.exists(filename):
+                os.remove(filename)
+            filename1 = fs.save(f_name, request.FILES['file'])
+            response = JsonResponse({'status':'success'}, status=status.HTTP_200_OK)
+            print("here")
+            return response
         except:
             return response

@@ -9,7 +9,7 @@ import AudioReactRecorder, { RecordState } from 'audio-react-recorder'
 //import { Recorder } from "react-voice-recorder";
 //import { ReactAudioRecorder } from '@sarafhbk/react-audio-recorder'
 
-export default class SpeakerRecognition1Page extends React.Component {
+export default class SpeakerSamplePage extends React.Component {
   render() {
      
     return (
