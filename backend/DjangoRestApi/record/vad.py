@@ -79,6 +79,7 @@ pipeline = OnlineSpeakerDiarization(
     max_speakers=5,
 )
 
+
 def predict_mul(request, filepath):
   if request.method == 'POST' and filepath:
     save_root = '/'.join(filepath.split('/')[:-1]) + '/'

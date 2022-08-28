@@ -1,8 +1,6 @@
 from django.conf.urls import url 
 from django.urls import path
-# from django.conf.urls import url
 from django.urls import path, include
-# from django.conf.urls import url
 from django.urls import path
 from . import views
 from django.conf import settings
@@ -24,9 +22,7 @@ urlpatterns = [
     path('api/speakerSample', views.speakerSample, name="speakerSample"),
     path('api/noisedetection', views.noisedetection, name="noisedetection"),
     path('api/test',  views.test, name = "test"),
-     path('api/speech', views.speechCheck, name="speechCheck"),
-    #path('api/arrayVAD',  views.arrayVAD, name = "arrayVAD"),
-    #url('api/arrayVAD',  views.arrayVAD, name = "arrayVAD"),
-
+    path('api/speech', views.speechCheck, name="speechCheck"),
+    path('api/uploads', views.saveFile, name="saveFile"),
 ]
 

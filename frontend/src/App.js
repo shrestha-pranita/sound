@@ -1,12 +1,14 @@
 import React, {Component} from 'react';
 import {BrowserRouter as Router, Route, Switch} from 'react-router-dom';
+import LoginPage from "./pages/User/LoginPage";
+import RegisterPage from "./pages/User/RegisterPage";
 import VAD1Page from "./pages/VAD1Page";
 import VAD2Page from "./pages/VAD2Page";
 import VAD3Page from "./pages/VAD3Page";
 import MulSpeaker1Page from "./pages/MulSpeaker1Page";
 import MulSpeaker2Page from "./pages/MulSpeaker2Page";
 import SpeakerRec1Page from "./pages/SpeakerRecognition1Page";
-import TestPage from "./pages/TestPage";
+import SpeechPage from "./pages/SpeechPage";
 
 //import './App.css';
 
@@ -17,15 +19,16 @@ class App extends Component {
             <Router>
             <div className="App">
                     <Switch>
-                        <Route exact path='/' component={VAD1Page} />
+                        <Route exact path='/' component={LoginPage} />
+                        <Route exact path='/login' component={LoginPage} />
+                        <Route path='/register' component={RegisterPage} />
                         <Route exact path='/vad1' component={VAD1Page} />
                         <Route exact path='/vad2' component={VAD2Page} />
                         <Route exact path='/vad3' component={VAD3Page} />
                         <Route exact path='/mulspeaker1' component={MulSpeaker1Page} />
                         <Route exact path='/mulspeaker2' component={MulSpeaker2Page} />
                         <Route exact path='/speakerrec1' component={SpeakerRec1Page} />
-                        <Route exact path='/vad3' component={VAD3Page} />
-                        
+                        <Route exact path='/speech' component={SpeechPage} />
                     </Switch>
                 
                 </div> 

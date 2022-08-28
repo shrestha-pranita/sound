@@ -1,12 +1,11 @@
 import { useReactMediaRecorder } from "react-media-recorder";
 import React, { useEffect, useState } from "react";
 import  web_link from "../web_link";
-import axios from "axios";
 import Header from '../elements/header';
 
 
 let samples = [];
-let localMic, context, source, processor;
+let context, source, processor;
 
 const RecordView = (props) => {
   const [second, setSecond] = useState("00");
@@ -45,7 +44,6 @@ const RecordView = (props) => {
             audio: { sampleRate: 48000, sampleSize: 16, channelCount: 1 },
           })
           .then((stream) => {
-            localMic = stream;
             context = new AudioContext();
             source = context.createMediaStreamSource(stream);
           })

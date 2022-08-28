@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_jwt_extended',
     'django_user_agents',
+    'users',
     
     # Django REST framework 
     'rest_framework',
@@ -137,7 +138,7 @@ SIMPLE_JWT = {
 
 WSGI_APPLICATION = 'DjangoRestApi.wsgi.application'
 
-#AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'users.User'
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
@@ -188,8 +189,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media').replace('\\', '/')
-MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads').replace('\\', '/')
+MEDIA_URL = '/uploads/'
 
 
 

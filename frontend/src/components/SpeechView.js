@@ -1,61 +1,102 @@
-import React, { useState, useEffect } from "react";
+import React, { Component } from 'react';
+import { Link, Redirect } from 'react-router-dom';
+import axios from 'axios';
 import  web_link from "../web_link";
+//import { Empty, Pagination } from 'antd';
+import Header from '../elements/header';
 
-var a;
-const AudioPlay = () => {
 
-    const [selectedFile, setSelectedFile] = useState();
-    const [isFilePicked, setIsFilePicked] = useState(false);
-    const [isSelected, setIsSelected] = useState(false);
+export default class SpeechPage extends Component {
+  constructor(props) {
+    super(props);
+    this.token = localStorage.getItem('token');
 
-    const changeHandler = (event) => {
-        setSelectedFile(event.target.files[0]);
-        setIsSelected(true);
-    };
 
-    const handleSubmission = () => {
-        const formData = new FormData();
+  }
 
-        formData.append('File', selectedFile);
+  componentDidMount() {
+    if (window.localStorage.getItem('isLoggedIn')) {
+      let userData = window.localStorage.getItem('user');
+    } else {
+      this.props.history.push('/login');
+      return <Redirect to="/login" />;
+    }
+    if ('token' in localStorage) {
+      if ('is_active' in localStorage && 'contract_signed' in localStorage) {
+        let active = localStorage.getItem('is_active');
+        let contract = localStorage.getItem('contract_signed');
+        if (active == 1 && contract == 1) {
+            console.log('')
+        } else {
+          this.props.history.push('/login');
+          return <Redirect to="/login" />;
+        }
+      }
+    } else {
+      this.props.history.push('/login');
+      return <Redirect to="/login" />;
+    }
 
-        fetch(
-            web_link+'/api/speech',
-            {
-                method: 'POST',
-                body: formData,
-            }
-        )
-            .then((response) => response.json())
-            .then((result) => {
-                console.log('Success:', result);
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
-    };
-    
+    let userData = window.localStorage.getItem('user');
+    if(userData){
+        userData = JSON.parse(userData);
+    }
 
-    return(
-    <div>
-            <input type="file" name="file" onChange={changeHandler} />
-            {isSelected ? (
-                <div>
-                    <p>Filename: {selectedFile.name}</p>
-                    <p>Filetype: {selectedFile.type}</p>
-                    <p>Size in bytes: {selectedFile.size}</p>
-                    <p>
-                        lastModifiedDate:{' '}
-                        {selectedFile.lastModifiedDate.toLocaleDateString()}
-                    </p>
-                </div>
-            ) : (
-                <p>Select a file to show details</p>
-            )}
-            <div>
-                <button onClick={handleSubmission}>Submit</button>
-            </div>
+    let user_id = userData.id
+    fetch(web_link+'/api/speech', {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            user_id: user_id
+        }),
+        })
+        .then((res) => res.json())
+        .catch((err) => console.log(err))
+
+  }
+
+  //handleChange (value){
+  //setoffset((value - 1) * 10);
+  //};
+
+  render() {
+
+    return (
+      <div>
+        <Header />
+        <div id="wrapper">
+
+          <div className="container h-100">
+            <h4 className="text-2xl my-2">Exam List</h4>
+            <hr />
+
+            <table className="table table-striped">
+            <thead>
+                <tr>
+                <th scope="col" className="align-middle">
+                    #
+                </th>
+                <th scope="col" className="align-middle">
+                    Exam name
+                </th>
+                <th scope="col" className="align-middle">
+                    Created On
+                </th>
+                <th scope="col" className="align-middle">
+                    Action
+                </th>
+                </tr>
+            </thead>
+                <tbody>
+                  
+                </tbody>
+              </table>
+
+          </div>
         </div>
-    )
-};
-
-export default AudioPlay;
+      </div>
+    );
+  }
+}

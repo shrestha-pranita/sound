@@ -1,9 +1,5 @@
-import { useReactMediaRecorder } from "react-media-recorder";
-import React, { useEffect, useState } from "react";
+import React from "react";
 //import  web_link from "../web_link";
-import axios from "axios";
-import { Link, Redirect } from "react-router-dom";
-import Header from '../elements/header';
 import  web_link from "../web_link";
 
 function App() {

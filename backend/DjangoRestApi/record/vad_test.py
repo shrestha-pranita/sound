@@ -15,7 +15,7 @@ from datetime import datetime
 import diart.operators as dops
 from traceback import print_exc
 from pyannote.database.util import load_rttm
-from diart.pipelines import OnlineSpeakerDiarization, PipelineConfig
+from diart.pipelines import OnlineSpeakerDiarization
 from typing import Union, Text, Optional, Tuple
 from pyannote.core import Annotation, SlidingWindowFeature
 from speechbrain.pretrained import VAD
@@ -141,18 +141,7 @@ VAD = VAD.from_hparams(source="speechbrain/vad-crdnn-libriparty",
   #      hprams.data.n_mfcc,
    #     get_melkwargs()
 #)
-"""
-config = PipelineConfig(
-    step=0.5,
-    latency=0.5,
-    tau_active=0.555,
-    rho_update=0.422,
-    delta_new=1.517,
-    gamma=3,
-    beta=10,
-    max_speakers=5
-)
-"""
+
 """
 pipeline = OnlineSpeakerDiarization(
     step=0.5,
@@ -179,9 +168,7 @@ pipeline = OnlineSpeakerDiarization(
 
 
 
-
 def predict_mul(request, filepath):
-    pipeline = OnlineSpeakerDiarization(config)
     save_root = '/'.join(filepath.split('/')[:-1]) + '/'
     if 'Records' not in os.listdir(save_root):
         os.makedirs(save_root + 'Records')

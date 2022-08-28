@@ -1,12 +1,12 @@
 import { useReactMediaRecorder } from "react-media-recorder";
 import React, { useEffect, useState } from "react";
 import  web_link from "../web_link";
-import axios from "axios";
 import Header from '../elements/header';
-
+import {Redirect,  useHistory } from 'react-router-dom';
+import axios from "axios";
 
 let samples = [];
-let localMic, context, source, processor;
+let context, source, processor;
 
 const RecordView = (props) => {
   const [second, setSecond] = useState("00");
@@ -14,10 +14,23 @@ const RecordView = (props) => {
   const [isActive, setIsActive] = useState(false);
   const [counter, setCounter] = useState(0);
   const [result, setResult] = useState({});
-  
+  const history = useHistory();
+  const [stopIsDisabled, stopSetDisabled] = useState(true);
+  const [submitIsDisabled, submitSetDisabled] = useState(true);
 
   useEffect(() => {
     let intervalId;
+
+    if(window.localStorage.getItem('isLoggedIn')){
+      let userData = window.localStorage.getItem('user');
+      if(userData){
+          userData = JSON.parse(userData);
+      } else {
+        history.push("/login");
+      }
+    }else {
+      history.push("/login");
+    }
 
     if (isActive) {
       intervalId = setInterval(() => {
@@ -41,19 +54,19 @@ const RecordView = (props) => {
     }
 
     try {
-        navigator.mediaDevices
-          .getUserMedia({
-            audio: { sampleRate: 48000, sampleSize: 16, channelCount: 1 },
-          })
-          .then((stream) => {
-            localMic = stream;
-            context = new AudioContext();
-            source = context.createMediaStreamSource(stream);
-          })
-          .catch((e) => console.log("Mic not Accessible!"));
-      } catch (e) {
-        console.error("start Mic error", e);
-      }
+      navigator.mediaDevices
+        .getUserMedia({
+          audio: { sampleRate: 48000, sampleSize: 16, channelCount: 1 },
+        })
+        .then((stream) => {
+          //localMic = stream;
+          context = new AudioContext();
+          source = context.createMediaStreamSource(stream);
+        })
+        .catch((e) => console.log("Mic not Accessible!"));
+    } catch (e) {
+      console.error("start Mic error", e);
+    }
 
     return () => clearInterval(intervalId);
   }, [isActive, counter]);
@@ -109,8 +122,34 @@ const RecordView = (props) => {
       onStopRec();
       setIsActive(!isActive);
     }}
+    disabled = {stopIsDisabled}
   >
     Stop
+  </button>;
+  };
+
+  const ButtonSubmit = () => {
+    return   <button
+    style={{
+      padding: "0.8rem 2rem",
+      border: "none",
+      backgroundColor: "#0000FF",
+      marginLeft: "15px",
+      fontSize: "1rem",
+      cursor: "pointer",
+      color: "white",
+      borderRadius: "5px",
+      fontWeight: "bold",
+      transition: "all 300ms ease-in-out",
+      transform: "translateY(0)"
+    }}
+    onClick={() => {
+      onFinalSubmitHandler();
+    }}
+
+    disabled = {submitIsDisabled}
+  >
+    Submit
   </button>;
   };
 
@@ -131,119 +170,95 @@ const RecordView = (props) => {
   } = useReactMediaRecorder({
     video: false,
     audio: true,
-    echoCancellation: true
+    echoCancellation: true,
+    //mediaRecorderOptions: { mimeType: 'audio/wav' }
   });
 
-  /*
-  const convertFileToBase64 = (file) =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file.mediaBlobUrl);
+  const predictSwitch = () => {
+    stopSetDisabled(false);
+    processor = context.createScriptProcessor(16384, 1, 1);
+    source.connect(processor);
+    processor.connect(context.destination);
+    processor.onaudioprocess = (e) => {
+    samples = [...samples, ...e.inputBuffer.getChannelData(0)];
+      if (samples.length > 48000) {
+        let out = [];
+        for (let i = 0; i < 48000; i += 3) {
+          let val = Math.floor(32767 * samples[i]);
+          val = Math.min(32767, val);
+          val = Math.max(-32768, val);
+          out.push(val);
+        }
 
-      reader.onload = () =>
-        resolve({
-          fileName: file.title,
-          base64: reader.result
-        });
-      reader.onerror = reject;
-    });
-    */
-    const predictSwitch = () => {
-            processor = context.createScriptProcessor(16384, 1, 1);
-            source.connect(processor);
-            processor.connect(context.destination);
-            processor.onaudioprocess = (e) => {
-            samples = [...samples, ...e.inputBuffer.getChannelData(0)];
-            //if (samples.length > 48000) {
-              if (samples.length > 48000) {
-                let out = [];
-                //for (let i = 0; i < 48000; i += 3) {
-                  for (let i = 0; i < 48000; i += 3) {
-                let val = Math.floor(32767 * samples[i]);
-                val = Math.min(32767, val);
-                val = Math.max(-32768, val);
-                out.push(val);
-                }
-                //var data_array = Array();
-                //data_array[0] = out.slice(0,5000);
-                //data_array[1] = out.slice(5000,10000);
-                //data_array[2] = out.slice(10000,15000);
-                //data_array[3] = out.slice(15000,16001);
-                //const blob = new Blob([out], {type: 'text/plain'});
-                //let welcome = new Uint8Array(out); // "Welcome" in binary form
-                //let blob = new Blob([out], {type: 'text/plain'});
-                //console.log(blob)
-                samples = samples.slice(48000);
-                
-                fetch(web_link+'/api/sileroVAD', {
-                  method: "POST",
-                  headers: {
-                      "Content-Type": "application/json",
-                      //'Access-Control-Allow-Origin': 'http://localhost:8000',
-                      //'Access-Control-Allow-Credentials': 'true'
-                  },
-                  body: JSON.stringify({
-                      data: out,
-                      //check: id
-                  }),
-                  })
-                  //.then((res) => res.json())
-                  .then((res) => res.json())
-                  .then((res) => setResult(res))
-                  .catch((err) => console.log(err))
-                
-                
-                //const posts = [1,2,3,4,5];
-                /*
-                const posts = [0,1,2,3]
-                for (var id in posts) {
-                  fetch(web_link+'/api/sileroVAD', {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        //'Access-Control-Allow-Origin': 'http://localhost:8000',
-                        //'Access-Control-Allow-Credentials': 'true'
-                    },
-                    body: JSON.stringify({
-                        data: data_array[id],
-                        check: id
-                    }),
-                    })
-                    //.then((res) => res.json())
-                    .then((res) => res.json())
-                    .then((res) => setResult(res))
-                    .catch((err) => console.log(err))
-                  }
-                  */
-                //fetch(web_link+'/api/rctVAD', {
-                //fetch(web_link+'/api/speechVAD', {
-                  /*
-                fetch(web_link+'/api/sileroVAD', {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    //'Access-Control-Allow-Origin': 'http://localhost:8000',
-                    //'Access-Control-Allow-Credentials': 'true'
-                },
-                body: JSON.stringify({
-                    data: blob,
-                }),
-                })
-                //.then((res) => res.json())
-                .then((res) => res.json())
-                .then((res) => setResult(res))
-                .catch((err) => console.log(err))
-              */
-            }
-            
-            };
+        samples = samples.slice(48000);
+        let userData = window.localStorage.getItem('user');
+        if(userData){
+            userData = JSON.parse(userData);
+        }
+
+        let user_id = userData.id
+        fetch(web_link+'/api/sileroVAD', {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+              data: out,
+              user_id: user_id
+          }),
+          })
+          .then((res) => res.json())
+          .then((res) => setResult(res))
+          .catch((err) => console.log(err))
+        }
+      };
+    };
+
+  const onStopRec = () => {
+    stopRecording();
+    processor.onaudioprocess = null;
+    processor = null;
+    submitSetDisabled(false);
+  };
+
+  const onFinalSubmitHandler = () => {
+    console.log("submit")
+
+    if (mediaBlobUrl == null) return;
+    let userData = window.localStorage.getItem('user');
+    if(userData){
+        userData = JSON.parse(userData);
+    }
+
+    let user_id = userData.id;
+    
+    
+    fetch(mediaBlobUrl)
+      .then((res) => res.blob())
+      .then((res) => {
+        let data = new FormData();
+        console.log(res.type)
+        const recordedFile = new File([res], 'voice');
+        console.log(recordedFile.type);
+        data.append("file", res);
+        data.append("user_id", user_id);
+        let config = {
+          header: {
+            "Content-Type": "multipart/form-data",
+          },
         };
 
-    const onStopRec = () => {
-        stopRecording();
-        processor.onaudioprocess = null;
-        processor = null;
-        };
+
+          axios
+            .post(web_link + "/api/uploads", data, config)
+            .then((response) => {
+            })
+            .catch((error) => {
+              console.log("error", error);
+            });
+        
+      });
+  };
 
   return (
     <>
@@ -273,8 +288,6 @@ const RecordView = (props) => {
         backgroundColor: "black",
         width: "100%",
         height: "700px"
-        //width: "1100px",
-        //height: "700px"
       }}
     >
       <div
@@ -299,7 +312,7 @@ const RecordView = (props) => {
       </div>
       <div style={{ height: "38px",marginTop: "200px", marginLeft: "150px"}}>
         {" "}
-        <video src={mediaBlobUrl} controls loop />
+        <audio src={mediaBlobUrl} controls loop />
       </div>
 
       <div
@@ -339,11 +352,11 @@ const RecordView = (props) => {
             <h3 style={{ marginLeft: "15px", fontWeight: "normal" }}>
               Press the Start to record
             </h3>
-
+            
             <div>
               <ButtonStart/>
               <ButtonStop/>
-              
+              <ButtonSubmit/>
             </div>
           </label>
         </div>

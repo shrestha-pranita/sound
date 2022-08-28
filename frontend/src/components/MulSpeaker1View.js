@@ -1,12 +1,11 @@
 import { useReactMediaRecorder } from "react-media-recorder";
 import React, { useEffect, useState } from "react";
 import  web_link from "../web_link";
-import axios from "axios";
 import Header from '../elements/header';
-
+import {Redirect } from 'react-router-dom';
 
 let samples = [];
-let localMic, context, source, processor;
+let context, source, processor;
 //const PREDICTAPI = process.env.NEXT_PUBLIC_BACKEND_BASE_URL;
 
 const RecordView = (props) => {
@@ -18,6 +17,12 @@ const RecordView = (props) => {
 
   useEffect(() => {
     let intervalId;
+    if (window.localStorage.getItem('isLoggedIn')) {
+      let userData = window.localStorage.getItem('user');
+    } else {
+      this.props.history.push('/login');
+      return <Redirect to="/login" />;
+    }
 
     if (isActive) {
       intervalId = setInterval(() => {
@@ -46,7 +51,6 @@ const RecordView = (props) => {
             audio: { sampleRate: 48000, sampleSize: 16, channelCount: 1 },
           })
           .then((stream) => {
-            localMic = stream;
             context = new AudioContext();
             source = context.createMediaStreamSource(stream);
           })
@@ -57,6 +61,7 @@ const RecordView = (props) => {
 
     return () => clearInterval(intervalId);
   }, [isActive, counter]);
+
 
   const ButtonStart = () => {
     return <button

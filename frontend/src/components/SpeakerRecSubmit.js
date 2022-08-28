@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import MicRecorder from 'mic-recorder-to-mp3';
 import axios from "axios"
 import  web_link from "../web_link";
-import {Redirect, useHistory, withRouter} from 'react-router-dom';
+import {Redirect, withRouter} from 'react-router-dom';
 import Header from '../elements/header';
 
 const Mp3Recorder = new MicRecorder({ bitRate: 128 });
@@ -21,7 +21,6 @@ class Audio extends Component {
         isBlocked: false,
         isRecordingStp: false,
         audioFile : '',
-        isRecording: '',
         blobFile: '',
       }
     //const [blobURL, setBlobUrl] = useState(null)

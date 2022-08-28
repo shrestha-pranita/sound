@@ -26,6 +26,7 @@ export default class Header extends Component {
 
 
     handleClickLogout(){
+        console.log("what")
         localStorage.clear()
         this.setState({ toDashboard: true });
     }
@@ -98,6 +99,12 @@ export default class Header extends Component {
                                 <Link to={'/speech'} className="dropdown-item">Speech</Link>
                                 <Link to={'/speech'} className="dropdown-item">Timestamp</Link>
                             </div>
+                        </li>
+
+                        <li className="nav-item dropdown no-arrow">
+                            <span className="nav-link dropdown-toggle" id="userDropdown" aria-haspopup="true" aria-expanded="false" >
+                                <Link to={'#'} onClick={this.handleClickLogout} className="dropdown-item" data-toggle="modal" data-target="#logoutModal">Logout</Link>
+                            </span>
                         </li>
                     </ul>
                 </div>
