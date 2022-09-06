@@ -48,7 +48,7 @@ export default class LoginPage extends Component {
                 localStorage.setItem('user', JSON.stringify(res.data))
                 //this.setState({redirect: true, isLoading: false,redirectPath: '/vad1'});
                 localStorage.setItem('isLoggedIn', true);
-                this.props.history.push('/vad1');
+                this.props.history.push('/dashboard');
             }                            
         })
         .catch(error => {

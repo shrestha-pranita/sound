@@ -1,292 +1,146 @@
-import { useReactMediaRecorder } from "react-media-recorder";
-import React, { useEffect, useState } from "react";
-import { useSnackbar } from "react-simple-snackbar";
-import { confirmAlert } from 'react-confirm-alert';
-import 'react-confirm-alert/src/react-confirm-alert.css';
+import React, { Component } from 'react';
+import { Link, Redirect, useParams, withRouter  } from 'react-router-dom';
+import axios from 'axios';
+import  web_link from "../web_link";
+//import { Empty, Pagination } from 'antd';
+import Header from '../elements/header';
+import ReactAudioPlayer from 'react-audio-player';
 
-let samples = [];
-let localMic, context, source, processor;
-const PREDICTAPI = process.env.NEXT_PUBLIC_BACKEND_BASE_URL;
+export default class RecordView extends Component {
+  constructor(props) {
+    super(props);
+    this.token = localStorage.getItem('token');
 
-const RecordView = (props) => {
-  const [second, setSecond] = useState("00");
-  const [minute, setMinute] = useState("00");
-  const [isActive, setIsActive] = useState(false);
-  const [counter, setCounter] = useState(0);
-  const [bgcolor, setBgColor] = useState("green");
-  const [speakingColor, setSpeakingColor] = useState("green");
-  const [noiseSwitchColor, setNoiseSwitchColor] = useState("green");
+    this.state = {
+      status_val : "",
+      filename : "",
+      records : []
+    };
 
-  const options = {
-    position: "top-center",
-    style: {
-      backgroundColor: "grey",
-      border: "2px solid lightgreen",
-      fontSize: "20px",
-      textAlign: "center",
-    },
-    closeStyle: {
-      color: "lightcoral",
-      fontSize: "16px",
-    },
-  };
-
-  //const [openSnackbar, _] = useSnackbar(options);
-
-  /*useEffect(() => {
-    let intervalId;
-    
-
-    if (isActive) {
-      intervalId = setInterval(() => {
-        const secondCounter = counter % 60;
-        const minuteCounter = Math.floor(counter / 60);
-
-        let computedSecond =
-          String(secondCounter).length === 1
-            ? `0${secondCounter}`
-            : secondCounter;
-        let computedMinute =
-          String(minuteCounter).length === 1
-            ? `0${minuteCounter}`
-            : minuteCounter;
-
-        setSecond(computedSecond);
-        setMinute(computedMinute);
-
-        setCounter((counter) => counter + 1);
-      }, 650);
-    }
-    return () => clearInterval(intervalId);
-  }, [isActive, counter]);
-  */
-
-  useEffect(() => {
-    try {
-      navigator.mediaDevices
-        .getUserMedia({
-          audio: { sampleRate: 48000, sampleSize: 16, channelCount: 1 },
-        })
-        .then((stream) => {
-          localMic = stream;
-          context = new AudioContext();
-          source = context.createMediaStreamSource(stream);
-        })
-        .catch((e) => console.log("Mic not Accessible!"));
-    } catch (e) {
-      console.error("start Mic error", e);
-    }
-  }, []);
-
-
-  function stopTimer() {
-    setIsActive(false);
-    setCounter(0);
-    setSecond("00");
-    setMinute("00");
   }
 
-  function testclick() {
-    console.log("here")
-  }
-
-  const {
-    status,
-    startRecording,
-    stopRecording,
-    pauseRecording,
-    mediaBlobUrl
-  } = useReactMediaRecorder({
-    video: false,
-    audio: true,
-    echoCancellation: true
-  });
-  console.log("deed", mediaBlobUrl);
-
-  const predictSwitch = () => {
-    if (bgcolor === "green") {
-      setBgColor("darkred");
-      processor = context.createScriptProcessor(16384, 1, 1);
-      source.connect(processor);
-      processor.connect(context.destination);
-      processor.onaudioprocess = (e) => {
-        samples = [...samples, ...e.inputBuffer.getChannelData(0)];
-        if (samples.length > 48000) {
-          let out = [];
-          for (let i = 0; i < 48000; i += 3) {
-            let val = Math.floor(32767 * samples[i]);
-            val = Math.min(32767, val);
-            val = Math.max(-32768, val);
-            out.push(val);
-          }
-          samples = samples.slice(48000);
-
-          fetch(PREDICTAPI, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              data: out,
-            }),
-          })
-            .then((res) => console.log("what"))
-            .then((res) => {
-              console.log(res)
-            })
-            .catch((err) => console.log(err));
-        }
-      };
+  componentDidMount() {
+    if (window.localStorage.getItem('isLoggedIn')) {
+      let userData = window.localStorage.getItem('user');
     } else {
-      setBgColor("green");
-      setSpeakingColor("green");
-      processor.onaudioprocess = null;
-      processor = null;
+      this.props.history.push('/login');
+      return <Redirect to="/login" />;
     }
-  };
+    if ('token' in localStorage) {
+      if ('is_active' in localStorage && 'contract_signed' in localStorage) {
+        let active = localStorage.getItem('is_active');
+        let contract = localStorage.getItem('contract_signed');
+        if (active == 1 && contract == 1) {
+            console.log('')
+        } else {
+          this.props.history.push('/login');
+          return <Redirect to="/login" />;
+        }
+      }
+    } else {
+      this.props.history.push('/login');
+      return <Redirect to="/login" />;
+    }
 
-  const convertFileToBase64 = (file) =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file.mediaBlobUrl);
+    let userData = window.localStorage.getItem('user');
+    if(userData){
+        userData = JSON.parse(userData);
+    }
 
-      reader.onload = () =>
-        resolve({
-          fileName: file.title,
-          base64: reader.result
-        });
-      reader.onerror = reject;
-    });
+    let user_id = userData.id
+    
+    const pathname = window.location.pathname
+    const slug = pathname.split("/").pop();
+    console.log(slug)
 
-  return (
-    <div
-      style={{
-        border: "1px solid black",
-        backgroundColor: "black",
-        width: "700px",
-        height: "350px"
-      }}
-    >
-      <div
-        style={{
-          border: "1px solid #bd9f61",
-          height: "70px",
-          backgroundColor: "#bd9f61",
-          display: "flex"
-        }}
-      >
-        <h4
-          style={{
-            marginLeft: "10px",
-            textTransform: "capitalize",
-            fontFamily: "sans-serif",
-            fontSize: "18px",
-            color: "white"
-          }}
-        >
-          {status}
-        </h4>
-      </div>
-      <div style={{ height: "38px" }}>
-        {" "}
-        <video src={mediaBlobUrl} controls loop />
-      </div>
+    fetch(web_link+'/api/records/'+slug, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            user_id: user_id
+        }),
+        })
+        .then((res) => res.json())
+        .then((res) => {
+            console.log(res.data)
+            this.setState({
+              records: res.data,
+              status_val: "success",
+              filename : res.filename
+          });
 
-      <div
-        className="col-md-6 col-md-offset-3"
-        style={{
-          backgroundColor: "black",
-          color: "white",
-          marginLeft: "357px"
-        }}
-      >
-        <button
-          style={{
-            backgroundColor: "black",
-            borderRadius: "8px",
-            color: "white"
-          }}
-          onClick={stopTimer}
-        >
-          Clear
-        </button>
+        })
+        .catch((err) => {
+          this.setState({
+            status_val: "fail",
+          });
+        })
 
-        <div style={{ marginLeft: "70px", fontSize: "54px" }}>
-          <span className="minute">{minute}</span>
-          <span>:</span>
-          <span className="second">{second}</span>
-        </div>
+  }
 
-        <div style={{ marginLeft: "20px", display: "flex" }}>
-          <label
-            style={{
-              fontSize: "15px",
-              fontWeight: "Normal"
-              // marginTop: "20px"
-            }}
-            htmlFor="icon-button-file"
-          >
-            <h3 style={{ marginLeft: "15px", fontWeight: "normal" }}>
-              Press the Start to record
-            </h3>
+  render() {
+    const {
+      status_val,
+      records,
+      filename
+    } = this.state;
+    return (
+      <div>
+        <Header />
+        <div id="wrapper">
+          <div className="container h-100">
+            <h4 className="text-2xl my-2">Recording List</h4>
+            <hr />
+            <ReactAudioPlayer
+              src={`${web_link}${filename}`}
+              controls
+            />
+            {status_val == "success" ? (
+            <table className="table table-striped">
+            <thead>
+              <tr>
+                <th scope="col" className="align-middle">
+                  Recording name
+                </th>
+                <th scope="col" className="align-middle">
+                  Start time
+                </th>
+                <th scope="col" className="align-middle">
+                  End time
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {records.map(item => (
+                <tr>
+                  <td className="align-middle">
+                    <ReactAudioPlayer
+                      src={`${web_link}${item.full}`}
+                      controls
+                    />
+                  </td>
+                  <td className="align-middle">
+                    {`${item.start}`} seconds
+                  </td>
 
-            <div>
-              <button
-                style={{
-                  padding: "0.8rem 2rem",
-                  border: "none",
-                  marginLeft: "15px",
-                  fontSize: "1rem",
-                  cursor: "pointer",
-                  borderRadius: "5px",
-                  fontWeight: "bold",
-                  backgroundColor: "#42b72a",
-                  color: "white",
-                  transition: "all 300ms ease-in-out",
-                  transform: "translateY(0)"
-                }}
-                onClick={() => {
-                  if (!isActive) {
-                    predictSwitch();
-                  } else {
-                    pauseRecording();
-                  }
-
-                  setIsActive(!isActive);
-                }}
-              >
-                {isActive ? "Pause" : "Start"}
-              </button>
-              <button
-                style={{
-                  padding: "0.8rem 2rem",
-                  border: "none",
-                  backgroundColor: "#df3636",
-                  marginLeft: "15px",
-                  fontSize: "1rem",
-                  cursor: "pointer",
-                  color: "white",
-                  borderRadius: "5px",
-                  fontWeight: "bold",
-                  transition: "all 300ms ease-in-out",
-                  transform: "translateY(0)"
-                }}
-                onClick={() => {
-                  pauseRecording();
-                  stopRecording();
-                  setIsActive(!isActive);
-                }}
-              >
-                Stop
-              </button>
-
-              <button onClick={testclick()}></button>
+                  <td className="align-middle">
+                    {`${item.end}`} seconds
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          ) : null}
+          {status_val == "fail"? (
+            <div className="font-weight-bold">
+              No recordings exist! Please contact the administrator.
             </div>
-          </label>
+          ) : null}
+          </div>
         </div>
-        <b></b>
       </div>
-    </div>
-  );
-};
-export default RecordView;
+    );
+  }
+}

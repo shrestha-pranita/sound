@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django_jwt_extended',
     'django_user_agents',
     'users',
+    'exams',
     
     # Django REST framework 
     'rest_framework',

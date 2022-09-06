@@ -22,7 +22,13 @@ urlpatterns = [
     path('api/speakerSample', views.speakerSample, name="speakerSample"),
     path('api/noisedetection', views.noisedetection, name="noisedetection"),
     path('api/test',  views.test, name = "test"),
+    path('api/record', views.recordingList, name="recordingList"),
     path('api/speech', views.speechCheck, name="speechCheck"),
     path('api/uploads', views.saveFile, name="saveFile"),
+    path('api/records/<int:record_id>', views.recordingView, name="recordingView"),
 ]
+
+if settings.DEBUG:
+    urlpatterns += staticfiles_urlpatterns()
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

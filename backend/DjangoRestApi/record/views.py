@@ -9,7 +9,7 @@ from scipy.io import wavfile
 import json
 import numpy as np
 import torch
-from silero.utils_vad import get_speech_timestamps, read_audio, VADIterator, get_number_ts
+from silero.utils_vad import get_speech_timestamps, read_audio, VADIterator, get_number_ts, save_audio
 #import pyaudio
 from time import time
 import scipy.signal as sps
@@ -64,6 +64,11 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 
 import subprocess
+from pydub import AudioSegment
+from collections import defaultdict
+import time
+import sklearn
+import pydub
 
 model = torch.load('models/models/silero_vad.jit')
 @api_view(['GET'])
@@ -154,6 +159,7 @@ def saveFile(request):
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     if request.method == "POST":
         user_id = request.data["user_id"]
+        exam_id = request.data["exam_id"]
         print(type(request.FILES["file"]))
         CHUNK = 1024
         CHANNELS = 1
@@ -167,217 +173,252 @@ def saveFile(request):
         f = request.FILES["file"]
         import io
         print(file)
-        folder_name = settings.MEDIA_URL+"user_audio/"+ str(user_id)
+        folder_name = settings.MEDIA_URL+"user_audio/exam_"+ str(exam_id) + "/user_" + str(user_id)
+
         filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + folder_name
-        filename = str(datetime.now()).replace(' ', '_').replace(':', '_') + "_" + str(user_id) +'.wav'
+        print(filepath)
+        if not os.path.exists(filepath):
+            os.makedirs(filepath)
+        
+        filename = str(datetime.now()).replace(' ', '_').replace(':', '_') + "_" + str(exam_id) + "_" + str(user_id) +'.wav'
         #filepath = './uploads/user_audio'
         nchannels = 1
         samplewidth = 2
         framerate = 44100
         nframes = 1024
-        import pydub
+
 
         with open(filepath + "/" + filename,  mode='bx') as destination:
             for chunk in f.chunks():
                 destination.write(chunk)
             destination.close()
-        print(filepath + "/" + filename)
-        print("-----")
-        from scipy.io.wavfile import read, write
-        with open(filepath + "/" + filename, "rb") as wa:
-            input_wav = wa.read()
-            data = io.BytesIO(input_wav)
-        #print(data.getvalue())
-        dat = np.frombuffer(data.getbuffer() , dtype=np.int16)
-        content= np.array(dat, np.int16)
-        print(dat)
-
-        wavfile.write(filepath+"/test.wav", 16000, content)
-
-        # data is a numpy ND array representing the audio data. Let's do some stuff with it
-        #reversed_data = data[::-1] #reversing it    
-        #print(reversed_data)    
-        data, samplerate = sf.read(filepath + "/test.wav")
-        print(data)
-        print(samplerate)
-        sf.write(filepath + "/"+'new.wav', data, samplerate, subtype='PCM_16')
-        webm_file = str(datetime.now()).replace(' ', '_').replace(':', '_') + ".webm"
-        wav_file = str(datetime.now()).replace(' ', '_').replace(':', '_') + ".wav"
-        """
-        import pydub
-        import io
-        import base64
-        wav = io.BytesIO()
-        t = base64.b64decode(f.read())
-        pydub.AudioSegment.from_file(t).export(wav, filepath + "/test.wav")
-        #f.save(filepath + "/" + wav_file)
-        """
-        """
-        nchannels = 1
-        samplewidth = 2
-        framerate = 44100
-        nframes = 1024
-
-        name = filepath + "/test.wav"
-        audio = wave.open(name, 'wb')
-        audio.setnchannels(nchannels)
-        audio.setsampwidth(samplewidth)
-        audio.setframerate(framerate)
-        audio.setnframes(nframes)
+        basename = os.path.splitext(folder_name + "/" + filename)[0]
+        store = Recording(filename = folder_name + "/" + filename, folder_name = basename, created_at = datetime.now(), user_id_id = user_id, exam_id_id = exam_id)
+        store.save()
+        response = JsonResponse({'status': 'success'}, status=status.HTTP_200_OK)
        
-        audio.writeframes(f.read())
-        """
-        """
-        with open(filepath + "/" + wav_file, 'wb+') as destination:
-            for chunk in f.chunks():
-                destination.write(chunk)
-            destination.close()
-        print(filepath + "/" + wav_file)
-        """
-        
-        """
-        file_check = create_folder(filepath)
-        print(file_check)
-        if file_check:
-            filename = str(datetime.now()).replace(' ', '_').replace(':', '_') + "_" + str(user_id) +'.wav'
-            #ContentFile(data.read())
-            path = default_storage.save(filepath + "/" + filename, ContentFile(file.read()))
-            model.reset_states()
-
-            audio_path = filepath + "/" + filename 
-
-            wav = read_audio(audio_path, RATE)
-            
-            vad_iterator = VADIterator(model)
-
-            window_size_samples = 1536 # number of samples in a single audio chunk
-            
-            start = []
-            end = []
-            timestamp = []
-            for i in range(0, len(wav), window_size_samples):
-                chunk = wav[i: i+ window_size_samples]
-                if len(chunk) < window_size_samples:
-                    break
-                speech_dict = vad_iterator(chunk, return_seconds=True)
-                if speech_dict:
-                    for key, value in speech_dict.items():
-                        if key == "start":
-                            start.append(value)
-                        else:
-                            end.append(value)
-                    #print("{}--test".format(speech_dict, end=' '))
-            print(speech_dict)
-            text_file_name = os.path.splitext(filename)[0]
-            f = open(filepath + "/" + text_file_name + ".txt", "a")
-            for i in range(0, len(start)):
-                timestamp.append("{},{}".format(start[i], end[i]))
-            print('\n'.join(timestamp))
-            f.write("start, end (in seconds)")
-            f.write('\n'.join(timestamp))
-            f.close()
-
-            vad_iterator.reset_states()
-        """
     return response
+
+def convert(time_val):
+    t = float(time_val)
+    hours = int(t // 3600)
+    minutes = int((t % 3600) // 60)
+    seconds = int(t % 60)
+    return hours, minutes, seconds
+
+@api_view(['GET', 'POST'])
+def recordingView(request, record_id):
+    print(record_id)
+    response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
+    if request.method == "POST":
+        user_id = request.data['user_id']
+        try:
+            filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            #print(filepath)
+            recordings = Recording.objects.filter(id__exact=record_id)   
+            recording_serializer = RecordingSerializer(recordings, many=True)
+            recording_data = json.loads(json.dumps(recording_serializer.data))
+            org_filename = recording_data[0]["filename"]
+            folder_name = settings.MEDIA_URL+"user_audio/"+ str(user_id) + "/" + recording_data[0]["folder_name"]
+            text_folder_name= settings.MEDIA_URL+"user_audio/"+ str(user_id) + "/txt_file"
+            print(settings.MEDIA_URL)
+            print(org_filename)
+            data = []
+            index = 0
+            
+            text_file = text_folder_name + "/" + recording_data[0]["folder_name"] + ".txt"
+            time_detail = []
+            
+
+            with open(filepath + "/" + text_file) as f:
+                
+                lines = f.readlines()[1:]
+                for i in range(0, len(lines)):
+                    text_list = defaultdict(list)
+                    x = lines[i].split(",")
+                    hours, minutes, seconds = convert(x[0])
+                    print("{}:{}:{}".format(hours, minutes, seconds))
+                    text_list["start"].append(str("{}:{}:{}".format(hours, minutes, seconds)))
+
+                    hours, minutes, seconds = convert(x[1])
+                    text_list["end"].append(str("{}:{}:{}".format(hours, minutes, seconds)).replace("\n",""))
+                    time_detail.append(text_list)
+
+            index = 0
+            for filename in os.listdir(filepath +  folder_name):
+                file_list = defaultdict(list)
+                
+
+                file_list["split"].append(folder_name + "/" + os.path.splitext(filename)[0])
+                file_list["full"].append(folder_name + "/" + filename)
+                file_list["start"].append(time_detail[index]["start"][0])
+                file_list["end"].append(time_detail[index]["end"][0])
+   
+                data.append(file_list)
+                index += 1
+
+            text_file = text_folder_name + "/" + recording_data[0]["folder_name"] + ".txt"
+            text_list = defaultdict(list)
+            print(org_filename)
+            return JsonResponse({"data" : data, "filename" : org_filename}, safe=False)
+        except: 
+            return JsonResponse({'data': 'fail'}, status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['GET', 'POST'])
+def recordingList(request):
+    response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
+    if request.method == "POST":
+        user_id = request.data['user_id']
+        try:
+            recordings = Recording.objects.filter(user_id_id__exact=user_id)   
+            recording_serializer = RecordingSerializer(recordings, many=True)
+            return JsonResponse({"data":recording_serializer.data,"status":"success"}, safe=False)
+            #return JsonResponse({'data': recording_serializer.data}, safe=False)
+        except: 
+            return JsonResponse({'data': 'fail'}, status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET', 'POST'])
 def speechCheck(request):
-    print("what")
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     if request.method == "POST":
         user_id = request.data['user_id']
         zero = []
+        
         folder_name = settings.MEDIA_URL+"user_audio/"+ str(user_id)
         filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + folder_name
-        print(filepath)
-        RATE = 16000 
-        print("here")
-        for filename in os.listdir(filepath):
-            model = torch.load('models/models/silero_vad.jit')
-            model.reset_states()
-            audio_path = filepath + "/" + filename 
+        if os.path.exists(filepath):
+            filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + folder_name
+            print(filepath)
+            RATE = 16000 
+            print("here")
+            for filename in os.listdir(filepath):
+                if filename.endswith('.wav'):
+                    model = torch.load('models/models/silero_vad.jit')
+                    model.reset_states()
+                    audio_path = filepath + "/" + filename 
+                    """
+                    print("no")
+                    import pydub
+                    import io
+                    data, samplerate = sf.read(filepath + "/"+filename)
+                    print(data)
+                    from scipy.io import wavfile
+                    samplerate, data = wavfile.read(audio_path)
+                    print(audio_path)
+                    print(data)
+                    wav = io.BytesIO()
+                    pydub.AudioSegment.converter = os.getcwd()+ "\\ffmpeg.exe"                    
+                    pydub.AudioSegment.ffprobe   = os.getcwd()+ "\\ffprobe.exe"
+                    pydub.AudioSegment.from_file(audio_path).export(wav, filepath + "/test.wav")
+                    """
+                    """
+                    nchannels = 1
+                    samplewidth = 2
+                    framerate = 8000
+                    nframes = 100
+
+                    name = filepath + "/test.wav"
+                    audio = wave.open(name, 'wb')
+                    audio.setnchannels(nchannels)
+                    audio.setsampwidth(samplewidth)
+                    audio.setframerate(framerate)
+                    audio.setnframes(nframes)
+                    blob = open(audio_path).read()
+                    audio.writeframes(blob)
+
+
+                    sf.write(filepath + "/" + 'tmp.wav', x, 16000)
+                    wave.open(filepath + "/" +'tmp.wav','r')
+                    """
+                    """
+                    with wave.open(audio_path, "rb") as wave_file:
+                        frame_rate = wave_file.getframerate()
+                        print(frame_rate)
+                    d = sf.read(audio_path)
+                    print(d)
+                    data, samplerate = sf.read(audio_path)
+                    print(data)
+                    """
+
+                    """
+                    SAMPLE_RATE = 16000
+                    sample_rate, src_data = wavfile.read(audio_path)
+                    if sample_rate != SAMPLE_RATE:
+                        number_of_samples = round(len(src_data) * float(SAMPLE_RATE) / sample_rate)
+                        src_data = sps.resample(src_data, number_of_samples)
+                    data = nr.reduce_noise(y=src_data, sr=SAMPLE_RATE)
+                    """
+                    
+                    text_file_name = "txt_file" + "/" + os.path.splitext(filename)[0]
+                    folder_name = os.path.splitext(filename)[0]
+                    
+                    if os.path.exists(filepath + "/" + text_file_name + ".txt"):
+                        with open(filepath + "/" + text_file_name + ".txt") as f:
+                            lines = f.readlines()[1:]
+                        for i in lines:
+                            x = i.split(",")
+                            print(x[1])
+                            t1 = int(float(x[0])) * 1000 #Works in milliseconds
+                            t2 = int(float(x[1].replace("\n",""))) * 1000
+                            print(audio_path)
+                            newAudio = AudioSegment.from_wav(audio_path)
+                            newAudio = newAudio[t1:t2]
+                            basename = os.path.basename(audio_path)
+                            filename = os.path.splitext(basename)
+
+                            name = filename[0] + "_" + str(x[0]) + "_" + str(x[1].replace("\n",""))  + filename[1]
+                            f_name = filename[0] + "_" + str(x[0]) + "_" + str(x[1].replace("\n",""))
+
+                            if not os.path.exists(filepath + "/" + folder_name):
+                                os.mkdir(filepath + "/" + folder_name)
+
+                            new_file_path = filepath + "/" + folder_name + "/" + name
+                            newAudio.export(new_file_path , format="wav")
+                        
+                    else:
+                        wav = read_audio(audio_path, RATE)
+                        vad_iterator = VADIterator(model)
+                        window_size_samples = 1536 # number of samples in a single audio chunk       
+                        start = []
+                        end = []
+                        timestamp = []
+                        for i in range(0, len(wav), window_size_samples):
+                            chunk = wav[i: i+ window_size_samples]
+                            if len(chunk) < window_size_samples:
+                                break
+                            speech_dict = vad_iterator(chunk, return_seconds=True)
+                            if speech_dict:
+                                for key, value in speech_dict.items():
+                                    if key == "start":
+                                        start.append(value)
+                                    else:
+                                        end.append(value)
+                                #print("{}--test".format(speech_dict, end=' '))
+                        print(speech_dict)
+                        text_file_name = os.path.splitext(filename)[0]
+                        f = open(filepath + "/" + text_file_name + ".txt", "a")
+                        for i in range(0, len(start)):
+                            timestamp.append("{},{}".format(start[i], end[i]))
+                        print('\n'.join(timestamp))
+                        f.write("start, end (in seconds)\n")
+                        f.write('\n'.join(timestamp))
+                        f.close()
+
+                        vad_iterator.reset_states() # reset model states after each audio
+
+
+
+
+                    #samplerate, data = wavfile.read(filepath + filename)
+
+                    #content= np.array(data, np.int16)
+                    #wavfile.write(filename, 16000, content)
+                    #model = torch.load('models/models/silero_vad.jit')
+                    #model.reset_states() 
+        else:
             print("no")
-            import pydub
-            import io
-            data, samplerate = sf.read(filepath + "/"+filename)
-            print(data)
-            from scipy.io import wavfile
-            samplerate, data = wavfile.read(audio_path)
-            print(audio_path)
-            print(data)
-            wav = io.BytesIO()
-            pydub.AudioSegment.converter = os.getcwd()+ "\\ffmpeg.exe"                    
-            pydub.AudioSegment.ffprobe   = os.getcwd()+ "\\ffprobe.exe"
-            pydub.AudioSegment.from_file(audio_path).export(wav, filepath + "/test.wav")
-            """
-            nchannels = 1
-            samplewidth = 2
-            framerate = 8000
-            nframes = 100
-
-            name = filepath + "/test.wav"
-            audio = wave.open(name, 'wb')
-            audio.setnchannels(nchannels)
-            audio.setsampwidth(samplewidth)
-            audio.setframerate(framerate)
-            audio.setnframes(nframes)
-            blob = open(audio_path).read()
-            audio.writeframes(blob)
-
-
-            sf.write(filepath + "/" + 'tmp.wav', x, 16000)
-            wave.open(filepath + "/" +'tmp.wav','r')
-            """
-            with wave.open(audio_path, "rb") as wave_file:
-                frame_rate = wave_file.getframerate()
-                print(frame_rate)
-            d = sf.read(audio_path)
-            print(d)
-            data, samplerate = sf.read(audio_path)
-            print(data)
-            wav = read_audio(audio_path, RATE)
-            
-            vad_iterator = VADIterator(model)
-
-            window_size_samples = 1536 # number of samples in a single audio chunk
-            
-            start = []
-            end = []
-            timestamp = []
-            for i in range(0, len(wav), window_size_samples):
-                chunk = wav[i: i+ window_size_samples]
-                if len(chunk) < window_size_samples:
-                    break
-                speech_dict = vad_iterator(chunk, return_seconds=True)
-                if speech_dict:
-                    for key, value in speech_dict.items():
-                        if key == "start":
-                            start.append(value)
-                        else:
-                            end.append(value)
-                    #print("{}--test".format(speech_dict, end=' '))
-            print(speech_dict)
-            text_file_name = os.path.splitext(filename)[0]
-            f = open(filepath + "/" + text_file_name + ".txt", "a")
-            for i in range(0, len(start)):
-                timestamp.append("{},{}".format(start[i], end[i]))
-            print('\n'.join(timestamp))
-            f.write("start, end (in seconds)")
-            f.write('\n'.join(timestamp))
-            f.close()
-
-            vad_iterator.reset_states() # reset model states after each audio
-
-
-
-            #samplerate, data = wavfile.read(filepath + filename)
-
-            #content= np.array(data, np.int16)
-            #wavfile.write(filename, 16000, content)
-            #model = torch.load('models/models/silero_vad.jit')
-            #model.reset_states() 
-
+            response = JsonResponse({'status': 'fail'}, status=status.HTTP_200_OK)
+            return response
             #speech_timestamps = get_speech_timestamps(content, model, sampling_rate=RATE)
             if (len(speech_timestamps) > 0):
                 print(speech_timestamps)
@@ -683,10 +724,11 @@ def speechVAD(request):
 def speechVAD(request):
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     if request.method == "POST":
+        user_id = request.data["user_id"]
         try:
             from speechbrain.pretrained import VAD
-            filepath = './final_recordings'
-            filename = filepath + '/' + str(datetime.now()).replace(' ', '_').replace(':', '_') + '.wav'
+            filepath = './uploads/recordings_audio'
+            filename = filepath + '/' + str(datetime.now()).replace(' ', '_').replace(':', '_') + "_" + str(user_id) +'.wav'
             content= np.array(request.data["data"], np.int16)
             wavfile.write(filename, 16000, content)
             VAD = VAD.from_hparams(source="speechbrain/vad-crdnn-libriparty", savedir="pretrained_models/vad-crdnn-libriparty")
@@ -791,8 +833,8 @@ def sileroVAD(request):
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     if request.method == "POST":
         user_id = request.data["user_id"]
+        
         try:
-            mark = time()
             CHUNK = 1024
             CHANNELS = 1
             RATE = 16000 
@@ -821,30 +863,86 @@ def sileroVAD(request):
     else:
         return response
 
+def count(audio, model, scaler):
+    # compute STFT
+    X = np.abs(librosa.stft(audio, n_fft=400, hop_length=160)).T
+
+    # apply global (featurewise) standardization to mean1, var0
+    X = scaler.transform(X)
+
+    # cut to input shape length (500 frames x 201 STFT bins)
+    X = X[:500, :]
+
+    # apply l2 normalization
+    Theta = np.linalg.norm(X, axis=1) + eps
+    X /= np.mean(Theta)
+
+    # add sample dimension
+    X = X[np.newaxis, ...]
+
+    if len(model.input_shape) == 4:
+        X = X[:, np.newaxis, ...]
+
+    ys = model.predict(X, verbose=0)
+    return np.argmax(ys, axis=1)[0]
+
 @api_view(['GET', 'POSt'])
 def mulspeaker1(request):
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     if request.method == 'POST':
-        filepath = './recordings_audio'
+        print("Here")
+        filepath = './uploads/recordings_audio'
         if os.path.exists(filepath) == False:
             os.makedirs(filepath)
         filename = filepath + '/' + str(datetime.now()).replace(' ', '_').replace(':', '_') + '.wav'
         #filename = 
         try:
+            #filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            #print(filepath)
+            print("model")
+            model = torch.load('models/env_classification.h5')
+            #model = torch.load('models/multi_speaker_model/CNN.h5')
+            print(model)
+            model_path = os.path.join('/models/multi_speaker_model', 'CRNN.h5')
+            #model = keras.models.load_model(
+             #   os.path.join('models/multi_speaker_model', 'CRNN' + '.h5'),
+            #)
+
+            model = keras.models.load_model(model_path)
+            print(model)
+
+            # print model configuration
+            model.summary()
+            print(model.summary())
+            # save as svg file
+            # load standardisation parameters
+            scaler = sklearn.preprocessing.StandardScaler()
+            with np.load(os.path.join("models", 'scaler.npz')) as data:
+                scaler.mean_ = data['arr_0']
+                scaler.scale_ = data['arr_1']
+
+                content= np.array(request.data["data"], np.int16)
+                # compute audio
+                #audio, rate = sf.read(args.audio, always_2d=True)
+
+                # downmix to mono
+                audio = np.mean(content, axis=1)
+                estimate = count(audio, model, scaler)
+                print("Speaker Count Estimate: ", estimate)
             #with open(filename, 'wb') as file:
              #   print("file")
             #print(json.loads(request.data))
             #content = np.array(json.loads(request.data), np.int16)
-            content= np.array(request.data["data"], np.int16)
+            #content= np.array(request.data["data"], np.int16)
             #sf.write(filename, content, 16000)
             #wavfile.write("./recordings_audio/"+'test.wav', 16000, content)
-            wavfile.write(filename, 16000, content)
+            #wavfile.write(filename, 16000, content)
             #wavfile.write("./recordings_audio/"+'2022-07-10_23_21_25.893481.wav', 16000, content)
         except:
             return response
-        val = predict_mul(request, filename)
-        print(val)
-        return val
+        #val = predict_mul(request, filename)
+        #print(val)
+        #return val
 """
 
 

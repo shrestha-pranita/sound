@@ -160,6 +160,12 @@ const RecordView = (props) => {
                 out.push(val);
                 }
                 samples = samples.slice(48000);
+                let userData = window.localStorage.getItem('user');
+                if(userData){
+                    userData = JSON.parse(userData);
+                }
+        
+                let user_id = userData.id
                 //fetch(web_link+'/api/rctVAD', {
                 fetch(web_link+'/api/speechVAD', {
                 //fetch(web_link+'/api/sileroVAD', {
@@ -171,6 +177,7 @@ const RecordView = (props) => {
                 },
                 body: JSON.stringify({
                     data: out,
+                    user_id: user_id
                 }),
                 })
                 //.then((res) => res.json())

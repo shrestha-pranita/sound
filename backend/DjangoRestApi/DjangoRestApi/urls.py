@@ -10,6 +10,8 @@ urlpatterns = [
     #url(r'^', include('user_profile.urls')),
     #url('api', include('user_profile.urls')),
     url(r'^', include('users.urls')),
+    url(r'^', include('exams.urls')),
+    url(r'^', include('admin.urls')),
     #path('questions/', include('questions.urls')),
  
 ]

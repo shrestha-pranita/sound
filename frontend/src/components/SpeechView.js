@@ -6,13 +6,17 @@ import  web_link from "../web_link";
 import Header from '../elements/header';
 
 
-export default class SpeechPage extends Component {
+export default class SpeechView extends Component {
   constructor(props) {
     super(props);
     this.token = localStorage.getItem('token');
 
-
+    this.state = {
+      status_val : ""
+    };
   }
+
+
 
   componentDidMount() {
     if (window.localStorage.getItem('isLoggedIn')) {
@@ -53,6 +57,13 @@ export default class SpeechPage extends Component {
         }),
         })
         .then((res) => res.json())
+        .then((res) => {
+          console.log(res)
+          this.setState({
+            status_val : res.status
+          });
+          
+        })
         .catch((err) => console.log(err))
 
   }
@@ -62,16 +73,18 @@ export default class SpeechPage extends Component {
   //};
 
   render() {
-
+    const {
+      status_val
+    } = this.state;
     return (
       <div>
         <Header />
         <div id="wrapper">
-
           <div className="container h-100">
-            <h4 className="text-2xl my-2">Exam List</h4>
+            <h4 className="text-2xl my-2">Recording List</h4>
             <hr />
 
+            {status_val == "success" ? (
             <table className="table table-striped">
             <thead>
                 <tr>
@@ -89,11 +102,17 @@ export default class SpeechPage extends Component {
                 </th>
                 </tr>
             </thead>
-                <tbody>
-                  
-                </tbody>
-              </table>
-
+            
+            <tbody>
+              
+            </tbody>
+          </table>
+          ) : null}
+          {status_val == "fail"? (
+            <div className="font-weight-bold">
+              No recordings exist! Please contact the administrator.
+            </div>
+          ) : null}
           </div>
         </div>
       </div>

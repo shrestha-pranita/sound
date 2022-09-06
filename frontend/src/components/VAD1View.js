@@ -17,6 +17,11 @@ const RecordView = (props) => {
   const history = useHistory();
   const [stopIsDisabled, stopSetDisabled] = useState(true);
   const [submitIsDisabled, submitSetDisabled] = useState(true);
+  const [status_val, setStatusVal] = useState("success");
+  const [exams, setExams] = useState({});
+  const [examName, setExamName] = useState("");
+
+
 
   useEffect(() => {
     let intervalId;
@@ -68,6 +73,36 @@ const RecordView = (props) => {
       console.error("start Mic error", e);
     }
 
+    let userData = window.localStorage.getItem('user');
+    if(userData){
+        userData = JSON.parse(userData);
+    }
+
+    let user_id = userData.id
+    const pathname = window.location.pathname
+    const slug = pathname.split("/").pop();
+
+    /*
+    fetch(web_link+'/api/startexam/'+slug, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            user_id: user_id,
+            exam_id: slug
+        }),
+        })
+        .then((res) => res.json())
+        .then((res) => {
+          setExamName(res[0].exam_name)
+          setExams(res)
+          setStatusVal("success")
+        })
+        .catch((err) => {
+          setStatusVal("fail")
+        })
+        */
     return () => clearInterval(intervalId);
   }, [isActive, counter]);
 
@@ -222,8 +257,6 @@ const RecordView = (props) => {
   };
 
   const onFinalSubmitHandler = () => {
-    console.log("submit")
-
     if (mediaBlobUrl == null) return;
     let userData = window.localStorage.getItem('user');
     if(userData){
@@ -231,31 +264,30 @@ const RecordView = (props) => {
     }
 
     let user_id = userData.id;
-    
+    const pathname = window.location.pathname
+    const slug = pathname.split("/").pop();
     
     fetch(mediaBlobUrl)
       .then((res) => res.blob())
       .then((res) => {
         let data = new FormData();
-        console.log(res.type)
         const recordedFile = new File([res], 'voice');
-        console.log(recordedFile.type);
         data.append("file", res);
         data.append("user_id", user_id);
+        data.append("exam_id", slug);
         let config = {
           header: {
             "Content-Type": "multipart/form-data",
           },
         };
-
-
-          axios
-            .post(web_link + "/api/uploads", data, config)
-            .then((response) => {
-            })
-            .catch((error) => {
-              console.log("error", error);
-            });
+        axios
+          .post(web_link + "/api/uploads", data, config)
+          .then((response) => {
+            history.push("/exam");
+          })
+          .catch((error) => {
+            console.log("error", error);
+          });
         
       });
   };
@@ -265,7 +297,10 @@ const RecordView = (props) => {
     <div id = "wrapper">
       <Header></Header> 
     </div>
-    <h1>
+    <h3>
+      
+    </h3>
+    <h2>
         Cheating Level Alert :{" "}
 
         {result.cheating_level === "high" ? (
@@ -279,9 +314,9 @@ const RecordView = (props) => {
         ) : (
           <span style={{ color: "Green" }}>No</span>
         )}{" "}
-      </h1>
-    <h2>VAD 1</h2>
-    <h2>Best Model</h2>
+      </h2>
+    <h3>VAD 1</h3>
+    <h3>Best Model</h3>
     <div
       style={{
         border: "1px solid black",

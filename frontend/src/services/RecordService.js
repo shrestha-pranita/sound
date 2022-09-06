@@ -1,5 +1,9 @@
 import http from "../http-common";
 
+const dashboard = () => {
+  return http.get("/dashboard");
+};
+
 const login = () => {
   return http.get("/");
 };
@@ -56,9 +60,18 @@ const speaker_rec1_sample = () => {
   return http.get("/speakerSample");
 };
 
+const exam = () => {
+  return http.get("/exam");
+};
+
+const admin_exam = () => {
+  return http.get("/admin_exam");
+};
+
 
 const RecordService = {
   login,
+  dashboard,
   login1,
   vad1,
   vad1_record,
@@ -71,6 +84,8 @@ const RecordService = {
   speaker_rec1_sample,
   test_page,
   speech_page,
+  exam,
+  admin_exam
 };
 
 export default RecordService;
