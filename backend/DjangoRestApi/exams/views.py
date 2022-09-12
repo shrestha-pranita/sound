@@ -20,6 +20,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.decorators import authentication_classes, permission_classes
+from record.models import Recording
 
 @api_view(['GET', 'POST', 'DELETE'])
 def exam_list(request):
@@ -28,9 +29,7 @@ def exam_list(request):
     #print(request.headers['Authorization'])
     if request.method == 'GET':
         try:
-            print("here")
             exams = Exam.objects.filter(status=1)
-            print(exams)
             exam_serializer = ExamSerializer(exams, many=True)
             return JsonResponse(exam_serializer.data, safe=False)
             #exam_id = Question.objects.filter(status=1).values('exam_id').distinct()

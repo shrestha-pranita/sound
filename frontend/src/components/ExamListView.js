@@ -93,8 +93,12 @@ export default class ExamListPage extends Component {
           <div>
             <Header />
             <div id="wrapper">
+              
               <div className="container h-100">
-                <h4 className="text-2xl my-2">Recording List</h4>
+              <div>
+                After the recording submission go to "Admin" to analyze the audios.
+              </div>
+                <h4 className="text-2xl my-2">Exam List</h4>
                 <hr />
     
                 {status_val === "success" ? (

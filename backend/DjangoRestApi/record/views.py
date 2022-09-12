@@ -65,10 +65,15 @@ from django.core.files.base import ContentFile
 
 import subprocess
 from pydub import AudioSegment
+#from pydub.audio_segment import AudioSegment
 from collections import defaultdict
 import time
 import sklearn
 import pydub
+import gtts
+from playsound import playsound
+import subprocess
+from exams.models import Exam
 
 model = torch.load('models/models/silero_vad.jit')
 @api_view(['GET'])
@@ -180,21 +185,27 @@ def saveFile(request):
         if not os.path.exists(filepath):
             os.makedirs(filepath)
         
-        filename = str(datetime.now()).replace(' ', '_').replace(':', '_') + "_" + str(exam_id) + "_" + str(user_id) +'.wav'
-        #filepath = './uploads/user_audio'
-        nchannels = 1
-        samplewidth = 2
-        framerate = 44100
-        nframes = 1024
+        filename = str(datetime.now()).replace(' ', '_').replace(':', '_') + "_" + str(exam_id) + "_" + str(user_id)
+        f_name = filename + ".webm"
+        wav_filename = filename + ".wav"
 
+        #pydub.AudioSegment.ffmpeg = "ffmpeg"
 
-        with open(filepath + "/" + filename,  mode='bx') as destination:
+        with open(filepath + "/" + f_name,  mode='bx') as destination:
             for chunk in f.chunks():
                 destination.write(chunk)
             destination.close()
-        basename = os.path.splitext(folder_name + "/" + filename)[0]
-        store = Recording(filename = folder_name + "/" + filename, folder_name = basename, created_at = datetime.now(), user_id_id = user_id, exam_id_id = exam_id)
+
+
+        subprocess.call('ffmpeg -i "'+filepath + '/' + f_name +'" -vn "'+ filepath + '/' + wav_filename+ '"') # check the ffmpeg command line :)
+
+        #.export(filepath + "/test.wav", format="wav")
+        basename = os.path.splitext(folder_name + "/" + wav_filename)[0]
+        store = Recording(filename = folder_name + "/" + wav_filename, folder_name = basename, created_at = datetime.now(), user_id_id = user_id, exam_id_id = exam_id)
         store.save()
+        os.remove(filepath + "/" + f_name)
+        exams = Exam.objects.filter(id__exact=exam_id).update(analyze = 0)
+
         response = JsonResponse({'status': 'success'}, status=status.HTTP_200_OK)
        
     return response

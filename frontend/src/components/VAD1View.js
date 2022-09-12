@@ -18,6 +18,9 @@ const RecordView = (props) => {
   const [stopIsDisabled, stopSetDisabled] = useState(true);
   const [submitIsDisabled, submitSetDisabled] = useState(true);
   const [status_val, setStatusVal] = useState("success");
+  const [isRecording, isSetRecording] = useState(false);
+  const [isBlocked, isSetBlocked] = useState(false);
+  const [blobUrl, isSetBlobUrl] = useState('');
   const [exams, setExams] = useState({});
   const [examName, setExamName] = useState("");
 
@@ -125,6 +128,7 @@ const RecordView = (props) => {
       if (!isActive) {
         startRecording();
         predictSwitch();
+        //start_audio_recording();
       } else {
         pauseRecording();
       }
@@ -155,6 +159,7 @@ const RecordView = (props) => {
       pauseRecording();
       //stopRecording();
       onStopRec();
+      //stop_audio_recording();
       setIsActive(!isActive);
     }}
     disabled = {stopIsDisabled}
@@ -195,13 +200,32 @@ const RecordView = (props) => {
     setMinute("00");
   }
 
+  /*
+  function start_audio_recording() {
+    Mp3Recorder
+      .start()
+      .then(() => {
+        isSetRecording(true)
+      }).catch((e) => console.error(e));
+  }
 
+  function stop_audio_recording() {
+    Mp3Recorder
+    .stop()
+    .getMp3()
+    .then(([buffer, blob]) => {
+      const blobURL = URL.createObjectURL(blob)
+      isSetRecording(false)
+      isSetBlobUrl(blobUrl)
+    }).catch((e) => console.log(e));
+  }
+  */
   const {
     status,
     startRecording,
     stopRecording,
     pauseRecording,
-    mediaBlobUrl
+    mediaBlobUrl,
   } = useReactMediaRecorder({
     video: false,
     audio: true,
@@ -283,6 +307,7 @@ const RecordView = (props) => {
         axios
           .post(web_link + "/api/uploads", data, config)
           .then((response) => {
+            console.log("whatttttt")
             history.push("/exam");
           })
           .catch((error) => {
@@ -290,6 +315,7 @@ const RecordView = (props) => {
           });
         
       });
+    
   };
 
   return (

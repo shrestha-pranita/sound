@@ -47,6 +47,21 @@ export default class Header extends Component {
                         <li className="nav-item dropdown no-arrow">
                             <span className="nav-link dropdown-toggle" id="userDropdown" role="button"
                             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Exams
+                            </span>
+
+                            <div className="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                                <Link to={'/exam'} className="dropdown-item">Exams</Link>
+                            </div>
+                        </li>
+                        
+                        <li>
+                            &nbsp;
+                        </li>
+                        {/* 
+                        <li className="nav-item dropdown no-arrow">
+                            <span className="nav-link dropdown-toggle" id="userDropdown" role="button"
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 VAD
                             </span>
 
@@ -60,6 +75,7 @@ export default class Header extends Component {
                         <li>
                             &nbsp;
                         </li>
+                        */}
                         {/* 
                         <li className="nav-item dropdown no-arrow">
                             <span className="nav-link dropdown-toggle" id="userDropdown" role="button"

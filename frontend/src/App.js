@@ -14,6 +14,8 @@ import RecordListPage from "./pages/RecordListPage";
 import RecordViewPage from "./pages/RecordViewPage";
 import AdminExamListPage from "./pages/AdminExamListPage";
 import AdminRecordListPage from "./pages/AdminRecordListPage";
+import AdminRecordViewPage from "./pages/AdminRecordViewPage";
+
 //import './App.css';
 
 class App extends Component {
@@ -40,6 +42,7 @@ class App extends Component {
                         <Route exact path='/startexam/:exam_id' component={VAD1Page} />
                         <Route exact path='/admin_exam' component={AdminExamListPage} />
                         <Route exact path='/admin_record/:exam_id' component={AdminRecordListPage} />
+                        <Route exact path='/admin_record_view/:record_id' component={AdminRecordViewPage} />
                     </Switch>
                 
                 </div> 
