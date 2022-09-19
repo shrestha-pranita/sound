@@ -70,6 +70,8 @@ def admin_record_list(request, exam_id):
             #return JsonResponse({'data': recording_serializer.data}, safe=False)
         except: 
             return JsonResponse({'data': 'fail'}, status=status.HTTP_204_NO_CONTENT)
+    else:
+        return response
 
 def dissect_speech(audio_path, RATE, model):
     wav = read_audio(audio_path, RATE)

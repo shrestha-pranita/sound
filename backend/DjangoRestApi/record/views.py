@@ -197,8 +197,8 @@ def saveFile(request):
             destination.close()
 
 
-        subprocess.call('ffmpeg -i "'+filepath + '/' + f_name +'" -vn "'+ filepath + '/' + wav_filename+ '"') # check the ffmpeg command line :)
-
+        #subprocess.call('ffmpeg -y -i "'+filepath + '/' + f_name +'" -vn "'+ filepath + '/' + wav_filename+ '"') # check the ffmpeg command line :)
+        subprocess.call('ffmpeg -i "'+filepath + '/' + f_name +'" -vn "'+ filepath + '/' + wav_filename+ '"', shell = True)
         #.export(filepath + "/test.wav", format="wav")
         basename = os.path.splitext(folder_name + "/" + wav_filename)[0]
         store = Recording(filename = folder_name + "/" + wav_filename, folder_name = basename, created_at = datetime.now(), user_id_id = user_id, exam_id_id = exam_id)
@@ -307,58 +307,6 @@ def speechCheck(request):
                     model = torch.load('models/models/silero_vad.jit')
                     model.reset_states()
                     audio_path = filepath + "/" + filename 
-                    """
-                    print("no")
-                    import pydub
-                    import io
-                    data, samplerate = sf.read(filepath + "/"+filename)
-                    print(data)
-                    from scipy.io import wavfile
-                    samplerate, data = wavfile.read(audio_path)
-                    print(audio_path)
-                    print(data)
-                    wav = io.BytesIO()
-                    pydub.AudioSegment.converter = os.getcwd()+ "\\ffmpeg.exe"                    
-                    pydub.AudioSegment.ffprobe   = os.getcwd()+ "\\ffprobe.exe"
-                    pydub.AudioSegment.from_file(audio_path).export(wav, filepath + "/test.wav")
-                    """
-                    """
-                    nchannels = 1
-                    samplewidth = 2
-                    framerate = 8000
-                    nframes = 100
-
-                    name = filepath + "/test.wav"
-                    audio = wave.open(name, 'wb')
-                    audio.setnchannels(nchannels)
-                    audio.setsampwidth(samplewidth)
-                    audio.setframerate(framerate)
-                    audio.setnframes(nframes)
-                    blob = open(audio_path).read()
-                    audio.writeframes(blob)
-
-
-                    sf.write(filepath + "/" + 'tmp.wav', x, 16000)
-                    wave.open(filepath + "/" +'tmp.wav','r')
-                    """
-                    """
-                    with wave.open(audio_path, "rb") as wave_file:
-                        frame_rate = wave_file.getframerate()
-                        print(frame_rate)
-                    d = sf.read(audio_path)
-                    print(d)
-                    data, samplerate = sf.read(audio_path)
-                    print(data)
-                    """
-
-                    """
-                    SAMPLE_RATE = 16000
-                    sample_rate, src_data = wavfile.read(audio_path)
-                    if sample_rate != SAMPLE_RATE:
-                        number_of_samples = round(len(src_data) * float(SAMPLE_RATE) / sample_rate)
-                        src_data = sps.resample(src_data, number_of_samples)
-                    data = nr.reduce_noise(y=src_data, sr=SAMPLE_RATE)
-                    """
                     
                     text_file_name = "txt_file" + "/" + os.path.splitext(filename)[0]
                     folder_name = os.path.splitext(filename)[0]
@@ -547,21 +495,22 @@ def noisedetection(request):
 
 
 @api_view(['GET', 'POST'])
-def speakerrec1(request):
+def speakerrec(request):
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     if request.method == 'POST':
+        user_id = request.data["user_id"]
         RATE = 16000
-        #filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/recordings_audio/"
-        #filepath = os.path.join("./recordings_audio/")
-        #filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/recordings_audio"
-        filepath = './speaker_audio'
-        if os.path.exists(filepath) == False:
-            os.makedirs(filepath)
+
+        folder_name = settings.MEDIA_URL+"speaker_audio"
+           
+        filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + folder_name
+
+        #filename = filepath + "/"+ str(datetime.now()).replace(' ', '_') + '.wav'
+        speaker_audio = filepath + '/speaker_sample_' + str(user_id) + '.wav'
+
         #filename = filepath + "/"+ str(datetime.now()).replace(' ', '_') + '.wav'
         filename = filepath + '/' + str(datetime.now()).replace(' ', '_').replace(':', '_') + '.wav'
-        speaker_audio = filepath + '/' + 'speaker2.wav'
-        cheating_level = "no"
-        #filename = 
+
         speaker_reco = "yes"
 
         try:
@@ -580,7 +529,7 @@ def speakerrec1(request):
                 #wavfile.write("./recordings_audio/"+'2022-07-10_23_21_25.893481.wav', 16000, content)
 
                 verification = SpeakerRecognition.from_hparams(source="speechbrain/spkrec-ecapa-voxceleb", savedir="pretrained_models/spkrec-ecapa-voxceleb")
-
+                print("hrere")
                 #score, prediction = verification.verify_files("123.wav", "datasets/SI1265_FJWB0_2.wav") # Different Speakers
                 #score, prediction = verification.verify_files("tests/samples/ASR/spk1_snt1.wav", "tests/samples/ASR/spk1_snt2.wav") # Same Speaker
                 score, prediction = verification.verify_files(speaker_audio, filename)
@@ -992,23 +941,30 @@ def arrayVAD(request):
 def speakerSample(request):
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     if request.method == 'POST':
-        filepath = './speaker_audio'
+        user_id = request.data["user_id"]
+        folder_name = settings.MEDIA_URL+"speaker_audio"
+        f = request.FILES["file"]
+           
+        filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + folder_name
         if os.path.exists(filepath) == False:
             os.makedirs(filepath)
-
         #filename = filepath + "/"+ str(datetime.now()).replace(' ', '_') + '.wav'
-        filename = filepath + '/' + 'speaker123.wav'
-        f_name = "speaker123.wav"
-
+        filename = filepath + '/speaker_sample_' + str(user_id) + '.wav'
+        f_name = 'speaker_sample_' + str(user_id) + ".webm"
+        wav_filename = 'speaker_sample_' + str(user_id) + ".wav"
+        print(filepath + "/" + f_name)
         #filename = 
         try:
-            fs = FileSystemStorage(location=filepath) #defaults to   MEDIA_ROOT  
-            detail = request.META['HTTP_USER_AGENT']
-            if os.path.exists(filename):
-                os.remove(filename)
-            filename1 = fs.save(f_name, request.FILES['file'])
+            print("no")
+            with open(filepath + "/" + f_name,  mode='bx') as destination:
+                for chunk in f.chunks():
+                    destination.write(chunk)
+                destination.close()
+
+            print("yest")
+            subprocess.call('ffmpeg -y -i "'+filepath + '/' + f_name +'" -vn "'+ filepath + '/' + wav_filename+ '"') # check the ffmpeg command line :)
+            os.remove(filepath + "/" + f_name)
             response = JsonResponse({'status':'success'}, status=status.HTTP_200_OK)
-            print("here")
             return response
         except:
             return response

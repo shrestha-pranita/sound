@@ -7,10 +7,16 @@ const LoginView = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (localStorage.getItem('token') !== null) {
-      window.location.replace('http://localhost:3000/dashboard');
-    } else {
-      setLoading(false);
+    if(window.localStorage.getItem('isLoggedIn')){
+      let userData = window.localStorage.getItem('user');
+      if(userData){
+          userData = JSON.parse(userData);
+          history.push("/dasboard");
+      } else {
+        history.push("/login");
+      }
+    }else {
+      history.push("/login");
     }
   }, []);
 
@@ -34,7 +40,8 @@ const LoginView = () => {
         if (data.key) {
           localStorage.clear();
           localStorage.setItem('token', data.key);
-          window.location.replace('http://localhost:3000/dashboard');
+          history.push("/dasboard");
+          //window.location.replace('http://localhost:3000/dashboard');
         } else {
           setEmail('');
           setPassword('');
