@@ -1,51 +1,51 @@
-import React, { Component } from 'react';
-import { Link, Redirect } from 'react-router-dom';
-import axios from 'axios';
-import web_link from '../web_link';
+import React, { Component } from "react";
+import { Link, Redirect } from "react-router-dom";
+import axios from "axios";
+import web_link from "../web_link";
 //import { Empty, Pagination } from 'antd';
-import Header from '../elements/header';
+import Header from "../elements/header";
 
 export default class AdminExamListView extends Component {
-    constructor(props) {
-        super(props);
-        this.token = localStorage.getItem('token');
-    
-        this.state = {
-          status_val : "",
-          exams :{}
-        };
+  constructor(props) {
+    super(props);
+    this.token = localStorage.getItem("token");
+
+    this.state = {
+      status_val: "",
+      exams: {},
+    };
+  }
+
+  componentDidMount() {
+    if (window.localStorage.getItem("isLoggedIn")) {
+      console.log("");
+    } else {
+      this.props.history.push("/login");
+      return <Redirect to="/login" />;
+    }
+    if ("token" in localStorage) {
+      if ("is_active" in localStorage && "contract_signed" in localStorage) {
+        let active = localStorage.getItem("is_active");
+        let contract = localStorage.getItem("contract_signed");
+        if (active === 1 && contract === 1) {
+          console.log("");
+        } else {
+          this.props.history.push("/login");
+          return <Redirect to="/login" />;
+        }
       }
-    
-      componentDidMount() {
-        if (window.localStorage.getItem('isLoggedIn')) {
-          console.log('')
-        } else {
-          this.props.history.push('/login');
-          return <Redirect to="/login" />;
-        }
-        if ('token' in localStorage) {
-          if ('is_active' in localStorage && 'contract_signed' in localStorage) {
-            let active = localStorage.getItem('is_active');
-            let contract = localStorage.getItem('contract_signed');
-            if (active === 1 && contract === 1) {
-                console.log('')
-            } else {
-              this.props.history.push('/login');
-              return <Redirect to="/login" />;
-            }
-          }
-        } else {
-          this.props.history.push('/login');
-          return <Redirect to="/login" />;
-        }
-    
-        let userData = window.localStorage.getItem('user');
-        if(userData){
-            userData = JSON.parse(userData);
-        }
-    
-        //let user_id = userData.id
-        /*
+    } else {
+      this.props.history.push("/login");
+      return <Redirect to="/login" />;
+    }
+
+    let userData = window.localStorage.getItem("user");
+    if (userData) {
+      userData = JSON.parse(userData);
+    }
+
+    //let user_id = userData.id
+    /*
         fetch(web_link+'/api/exams', {
             method: "GET",
             })
@@ -65,53 +65,49 @@ export default class AdminExamListView extends Component {
             })
             */
 
-        axios({
-            method: 'get',
-            url: web_link + '/api/admin_exam',
-            })
-            .then((response) => {
-                this.setState({
-                exams: response.data,
-                status_val: 'success'
-                });
-            })
-            .catch((error) => {
-                console.log(error);
-                this.setState({
-                    status_val: "fail",
-                  });
-            });
-      }
-      
-    
-    render() {
-        const {
-          status_val,
-          exams
-        } = this.state;
-        return (
-          <div>
-            <Header />
-            <div id="wrapper">
-              <div className="container h-100">
-                <h4 className="text-2xl my-2">Recording List</h4>
-                <hr />
-    
-                {status_val === "success" ? (
-                <table className="table table-striped">
+    axios({
+      method: "get",
+      url: web_link + "/api/admin_exam",
+    })
+      .then((response) => {
+        this.setState({
+          exams: response.data,
+          status_val: "success",
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+        this.setState({
+          status_val: "fail",
+        });
+      });
+  }
+
+  render() {
+    const { status_val, exams } = this.state;
+    return (
+      <div>
+        <Header />
+        <div id="wrapper">
+          <div className="container h-100">
+            <h4 className="text-2xl my-2">Recording List</h4>
+            <hr />
+
+            {status_val === "success" ? (
+              <table className="table table-striped">
                 <thead>
                   <tr>
                     <th scope="col" className="align-middle">
                       #
                     </th>
                     <th scope="col" className="align-middle">
-                        Exam Name
+                      Exam Name
                     </th>
                     <th scope="col" className="align-middle">
-                        Created At
+                      Created At
                     </th>
                     <th scope="col" className="align-middle">
-                        Action
+                      Action
                     </th>
                   </tr>
                 </thead>
@@ -129,7 +125,7 @@ export default class AdminExamListView extends Component {
                             to={`/admin_record/${exam.id}`}
                             className="text-blue-600"
                           >
-                            View Recordings
+                            View Details
                           </Link>
                         </td>
                       </tr>
@@ -137,16 +133,15 @@ export default class AdminExamListView extends Component {
                   })}
                 </tbody>
               </table>
-              ) : null}
-              {status_val === "fail"? (
-                <div className="font-weight-bold">
-                  No exams exist! Please contact the administrator.
-                </div>
-              ) : null}
+            ) : null}
+            {status_val === "fail" ? (
+              <div className="font-weight-bold">
+                No exams exist! Please contact the administrator.
               </div>
-            </div>
+            ) : null}
           </div>
-        );
-      }
-    }
-    
+        </div>
+      </div>
+    );
+  }
+}
