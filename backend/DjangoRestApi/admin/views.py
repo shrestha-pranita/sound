@@ -166,6 +166,65 @@ def recordingViews(request, record_id):
         except: 
             return JsonResponse({'data': 'fail'}, status=status.HTTP_204_NO_CONTENT)
 
+
+@api_view(['GET', 'POST'])
+def userRecordingViews(request, record_id):
+    print("how")
+    print(record_id)
+    response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
+    if request.method == "POST":
+        user_id = request.data['user_id']
+        try:
+            filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            #print(filepath)
+            recordings = Recording.objects.filter(id__exact=record_id)   
+            recording_serializer = RecordingSerializer(recordings, many=True)
+            recording_data = json.loads(json.dumps(recording_serializer.data))
+            org_filename = recording_data[0]["filename"]
+            folder_name = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + recording_data[0]["folder_name"]
+            text_folder_name = filepath + settings.MEDIA_URL+ "user_audio/exam_"+ str(recording_data[0]["exam_id"]) + "/txt_file"
+            audio_folder_name = recording_data[0]["folder_name"] 
+            print(audio_folder_name)
+            data = []
+            index = 0
+            text_file_name = os.path.basename(recording_data[0]["folder_name"]) + ".txt"
+            print(text_file_name)
+            text_file = os.path.basename(recording_data[0]["folder_name"]) + ".txt"
+            time_detail = []
+            print(filepath + "/" + text_folder_name + "/" + text_file_name)
+
+            with open(text_folder_name + "/" + text_file_name) as f:
+                lines = f.readlines()[1:]
+                print(lines)
+                for i in range(0, len(lines)):
+                    text_list = defaultdict(list)
+                    x = lines[i].split(",")
+                    hours, minutes, seconds = convert(x[0])
+                    print("{}:{}:{}".format(hours, minutes, seconds))
+                    text_list["start"].append(str("{}:{}:{}".format(hours, minutes, seconds)))
+
+                    hours, minutes, seconds = convert(x[1])
+                    text_list["end"].append(str("{}:{}:{}".format(hours, minutes, seconds)).replace("\n",""))
+                    time_detail.append(text_list)
+
+            index = 0
+            for filename in os.listdir(folder_name):
+                file_list = defaultdict(list)
+                
+
+                file_list["split"].append(audio_folder_name + "/" + os.path.splitext(filename)[0])
+                file_list["full"].append(audio_folder_name + "/" + filename)
+                file_list["start"].append(time_detail[index]["start"][0])
+                file_list["end"].append(time_detail[index]["end"][0])
+   
+                data.append(file_list)
+                index += 1
+
+            return JsonResponse({"data" : data, "filename" : org_filename}, safe=False)
+        except: 
+            return JsonResponse({'data': 'fail'}, status=status.HTTP_204_NO_CONTENT)
+
+
 @api_view(['GET', 'POST', 'DELETE'])
 def admin_analyze(request, exam_id):
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
