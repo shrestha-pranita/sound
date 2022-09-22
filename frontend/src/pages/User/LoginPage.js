@@ -10,7 +10,7 @@ export default class LoginPage extends Component {
         email: '',
         password: '',
         redirect: false,
-        redirectPath: '/vad1',
+        redirectPath: '/dashboard',
         authError: false,
         isLoading: false,
         location: {},
@@ -26,7 +26,7 @@ export default class LoginPage extends Component {
 
 
     handleCheckAuth = user => {
-        this.setState({redirect: true, isLoading: false,redirectPath: '/vad1'});     
+        this.setState({redirect: true, isLoading: false,redirectPath: '/dashboard'});     
         
     }
     
