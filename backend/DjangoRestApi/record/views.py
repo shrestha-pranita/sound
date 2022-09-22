@@ -72,19 +72,15 @@ def audio(request):
     return response.Response({
         'id':"test"
     })
-    return "here"
-    print("here")
 
 @api_view(['GET', 'POST'])
 def test(request):
-    print(request)
-    print(request.data)
+   
     if request.method =="POST":
-        print("no")
         response = JsonResponse({'status': 'success', 'result':'test'}, status=status.HTTP_200_OK)
         return response
     else:
-        print("what")
+        print("")
 def get_melspectrogram_db(file_path, sr=None, n_fft=2048, hop_length=512, n_mels=128, fmin=20, fmax=8300, top_db=80):
   wav,sr = librosa.load(file_path,sr=sr)
   if wav.shape[0]<5*sr:
@@ -141,7 +137,6 @@ def create_folder(filepath):
 
 @api_view(['GET', 'POST'])
 def saveFile(request):
-    print("Whats")
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     if request.method == "POST":
         user_id = request.data["user_id"]
@@ -194,7 +189,12 @@ def convert(time_val):
 
 @api_view(['GET', 'POST'])
 def recordingView(request, record_id):
-    print(record_id)
+    """
+    recording  function fetches the list of record from database
+    :param request: contains request data sent from frontend
+    param record_id: contains record id sent from frontend
+    :return: list of recording
+    """ 
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     if request.method == "POST":
         user_id = request.data['user_id']
@@ -242,6 +242,11 @@ def recordingView(request, record_id):
 
 @api_view(['GET', 'POST'])
 def recordingList(request):
+    """
+    recordinglist  function fetches the list of record from database
+    :param request: contains request data sent from frontend
+    :return: list of recording
+    """ 
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     if request.method == "POST":
         user_id = request.data['user_id']
@@ -249,12 +254,16 @@ def recordingList(request):
             recordings = Recording.objects.filter(user_id_id__exact=user_id)   
             recording_serializer = RecordingSerializer(recordings, many=True)
             return JsonResponse({"data":recording_serializer.data,"status":"success"}, safe=False)
-            #return JsonResponse({'data': recording_serializer.data}, safe=False)
         except: 
             return JsonResponse({'data': 'fail'}, status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET', 'POST'])
 def speechCheck(request):
+    """
+    speechcheck function check the speech from database
+    param request: contains request data sent from frontend
+    return: speech details
+    """
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     if request.method == "POST":
         user_id = request.data['user_id']
@@ -337,6 +346,11 @@ def speechCheck(request):
 
 @api_view(['GET', 'POST'])
 def noisedetection(request):
+    """
+    noisedetection function detect the noise
+    param request: contains request data sent from frontend
+    return: detection noise details
+    """ 
     noise_presence = "no"
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     if request.method == 'POST':
@@ -363,6 +377,11 @@ def noisedetection(request):
 
 @api_view(['GET', 'POST'])
 def speakerrec(request):
+    """
+    speakerrec function recognition of speech
+    param request: contains request data sent from frontend
+    return: speech reconginition details
+    """ 
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     if request.method == 'POST':
         user_id = request.data["user_id"]
@@ -497,7 +516,11 @@ def speechVAD(request):
         return response
 
 def env_sound(filename):
-    
+    """
+    env_sound function fetech the enviroment sound
+    param filename: contains filename data sent from frontend
+    return: sounds from the enviroment
+    """     
     low = ['dog', 'rooster', 'pig', 'cow', 'frog', 'cat', 'hen', 'insects', 'sheep', 'crow', 'rain', 'sea_waves',
 'crackling_fire', 'crickets', 'chirping_birds', 'water_drops', 'wind', 'thunderstorm', 'crying_baby', 'sneezing', 'breathing'
 'coughing', 'brushing_teeth', 'snoring', 'drinking_sipping', 'mouse_click', 'keyboard_typing', 'can_opening', 'washing_machine',
@@ -522,7 +545,7 @@ def env_sound(filename):
         return "high"
 
 @api_view(['GET', 'POST'])
-def sileroVAD(request):
+def sileroVAD(request): 
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     if request.method == "POST":
         user_id = request.data["user_id"]
@@ -567,9 +590,13 @@ def count(audio, model, scaler):
 
 @api_view(['GET', 'POSt'])
 def mulspeaker1(request):
+    """
+    mulspeaker function fetech the multispeaker
+    param request: contains request data sent from frontend
+    return: multiplespeakers details 
+    """ 
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     if request.method == 'POST':
-        print("Here")
         filepath = './uploads/recordings_audio'
         if os.path.exists(filepath) == False:
             os.makedirs(filepath)
@@ -596,6 +623,11 @@ def mulspeaker1(request):
         
 @api_view(['GET', 'POST'])
 def speakerSample(request):
+    """
+    speaker_sample function fetched the details of speaker from database
+    :param request: contains request data sent from frontend
+    :return: return the speakers details
+    """
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     if request.method == 'POST':
         user_id = request.data["user_id"]

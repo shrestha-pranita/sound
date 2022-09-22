@@ -19,16 +19,11 @@ from diart.pipelines import OnlineSpeakerDiarization
 from typing import Union, Text, Optional, Tuple
 from pyannote.core import Annotation, SlidingWindowFeature
 from speechbrain.pretrained import VAD
-#from hydra import compose, initialize
 from rest_framework import status
 from django.http import JsonResponse
 import scipy.io.wavfile
 from torch.nn import Module
 import scipy.signal as sps
-
-
-
-
 class RTTMWriter(Observer):
   def __init__(self, path: Union[Path, Text], patch_collar: float = 0.05):
     super().__init__()
@@ -83,9 +78,6 @@ pipeline = OnlineSpeakerDiarization(
     beta=10,
     max_speakers=5
 )
-
-
-
 def predict_mul(request, filepath):
     save_root = '/'.join(filepath.split('/')[:-1]) + '/'
     if 'Records' not in os.listdir(save_root):
@@ -150,6 +142,5 @@ def predict_mul(request, filepath):
             
         return response
     except:
-        print("except")
         response = JsonResponse({'status': 'fail', 'description': 'Server Issues'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return response

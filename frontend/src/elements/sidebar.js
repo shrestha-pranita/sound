@@ -1,14 +1,10 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 
-
 export default class Sidebar extends Component {
-
     state = {
         user: {}
     };
-
-
     componentDidMount() {
         let userData = localStorage.getItem('user');
         if (userData) {
@@ -16,8 +12,6 @@ export default class Sidebar extends Component {
             this.setState({ user: userData })
         }
     }
-
-
     render() {
         return (
             <div id="wrapper">
@@ -38,7 +32,6 @@ export default class Sidebar extends Component {
                         </li>
                     </>
                     }
-
                     {this.state.user.is_approved && this.state.user.contract_signed && <>
                         <li className="nav-item">
                             <Link to={'/recordlist'} className="nav-link"><i className="fas fa-fw fa-file-audio"></i>

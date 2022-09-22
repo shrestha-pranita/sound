@@ -33,7 +33,10 @@ class RTTMWriter(Observer):
       self.path.unlink()
 
   def patch_rttm(self):
-    """Stitch same-speaker turns that are close to each other"""
+    """
+    patch_rttm function Stitch same-speaker turns that are close to each other
+
+    """
     loaded_rttm = list(load_rttm(self.path).values())
     if len(loaded_rttm) != 0:
       annotation = loaded_rttm[0]
@@ -64,8 +67,6 @@ def get_client_ip(request):
     return ip
 
 SAMPLE_RATE = 16000
-#VAD = VAD.from_hparams(source="speechbrain/vad-crdnn-libriparty", savedir="pretrained_models/vad-crdnn-libriparty", overrides={"sample_rate": SAMPLE_RATE})
-                       #savedir="pretrained_models/vad-crdnn-libriparty")
 VAD = VAD.from_hparams(source="speechbrain/vad-crdnn-libriparty", savedir="pretrained_models/vad-crdnn-libriparty")
 
 pipeline = OnlineSpeakerDiarization(
@@ -93,8 +94,6 @@ def predict_mul(request, filepath):
     noise_presence = 'no'
     multi_speaker = 'no'
     speak_presence = 'no'
-    #base_name = filepath.split('/')[-1]
-    #base_name = Path(filepath).stem
     base_name = save_root+ '/' + str(datetime.now()).replace(' ', '_')
     current_diarization = save_root + 'Diarization/' + base_name + '.txt'
     record_file = io.open(save_root + '00-RecordJournal.csv', "a", encoding="utf-8")
@@ -105,19 +104,11 @@ def predict_mul(request, filepath):
         number_of_samples = round(len(src_data) * float(SAMPLE_RATE) / sample_rate)
         src_data = sps.resample(src_data, number_of_samples)
       data = nr.reduce_noise(y=src_data, sr=SAMPLE_RATE)
-      
-      # speech_probs = VAD.get_speech_prob_chunk(torch.tensor(data))
-      # activation_pass_values = VAD.apply_threshold(speech_probs).numpy()
-      # vad_prob = activation_pass_values.sum()/np.prod(activation_pass_values.shape)
-      # confidence = speech_probs.numpy().sum()/np.prod(activation_pass_values.shape)
-      # if vad_prob > 0.5:
       speech_probs = VAD.get_speech_prob_chunk(torch.tensor(data))
 
       activation_pass_values = VAD.apply_threshold(speech_probs).numpy()
       vad_prob = activation_pass_values.sum()/np.prod(activation_pass_values.shape)
       confidence = speech_probs.numpy().sum()/np.prod(activation_pass_values.shape)
-      #record_file.write(base_name+'.wav'+', {:.2f}'.format(vad_prob)+', {:.2f}'.format(confidence)+'\n')
-      #record_file.close()
       record_file.write(base_name+'.wav'+', {:.2f}'.format(vad_prob)+', {:.2f}'.format(confidence)+'\n')
       record_file.close()
       print(vad_prob)
@@ -148,13 +139,11 @@ def predict_mul(request, filepath):
           multi_speaker = 'yes'
       response = JsonResponse({'status': 'success', 'prediction': '',
                             'multi_speaker': multi_speaker, 'time_taken': str(time()-mark)[:4]+' Sec'}, status=status.HTTP_200_OK)
-      #os.remove(current_diarization)
       os.remove(filepath)
       return response
     except:
-      print("what")
+    
       response = JsonResponse({'status': 'fail', 'description': 'Detection Failed!!'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-      #os.remove(current_diarization)
       os.remove(filepath)
   
 def predict_speech(request, filepath):
@@ -170,10 +159,8 @@ def predict_speech(request, filepath):
     noise_presence = 'no'
     multi_speaker = 'no'
     speech_detection = 'no'
-    #base_name = filepath.split('/')[-1]
     base_name = Path(filepath).stem
     current_diarization = save_root + 'Diarization/' + base_name + '.txt'
-    #record_file = io.open(save_root + '00-RecordJournal.csv', "a", encoding="utf-8")
     try:
       mark = time()
       sample_rate, src_data = scipy.io.wavfile.read(filepath)
@@ -181,20 +168,11 @@ def predict_speech(request, filepath):
         number_of_samples = round(len(src_data) * float(SAMPLE_RATE) / sample_rate)
         src_data = sps.resample(src_data, number_of_samples)
       data = nr.reduce_noise(y=src_data, sr=SAMPLE_RATE)
-      
-      # speech_probs = VAD.get_speech_prob_chunk(torch.tensor(data))
-      # activation_pass_values = VAD.apply_threshold(speech_probs).numpy()
-      # vad_prob = activation_pass_values.sum()/np.prod(activation_pass_values.shape)
-      # confidence = speech_probs.numpy().sum()/np.prod(activation_pass_values.shape)
-      # if vad_prob > 0.5:
       speech_probs = VAD.get_speech_prob_chunk(torch.tensor(data))
 
       activation_pass_values = VAD.apply_threshold(speech_probs).numpy()
       vad_prob = activation_pass_values.sum()/np.prod(activation_pass_values.shape)
       confidence = speech_probs.numpy().sum()/np.prod(activation_pass_values.shape)
-      #record_file.write(base_name+'.wav'+', {:.2f}'.format(vad_prob)+', {:.2f}'.format(confidence)+'\n')
-      #record_file.close()
-
       if vad_prob > 0.5:
         speech_detection = "yes"
       os.remove(filepath)

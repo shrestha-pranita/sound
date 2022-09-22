@@ -5,7 +5,6 @@ import Audio from "../components/RecordView1";
 
 export default class RecordPage extends React.Component {
   render() {
-
     return (
       <Audio/>
     );

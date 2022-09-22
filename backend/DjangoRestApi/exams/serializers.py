@@ -30,8 +30,7 @@ class UserSerializer(serializers.ModelSerializer):
  
 
 
-class ExamForeignSerializer(serializers.ModelSerializer):
-    
+class ExamForeignSerializer(serializers.ModelSerializer):    
     class Meta:
         model = Exam
         fields = ('id',

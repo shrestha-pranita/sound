@@ -22,7 +22,6 @@ from pyannote.core import Annotation, SlidingWindowFeature
 from speechbrain.pretrained import VAD
 from pathlib import Path
 
-
 class RTTMWriter(Observer):
   def __init__(self, path: Union[Path, Text], patch_collar: float = 0.05):
     super().__init__()
@@ -63,8 +62,6 @@ def get_client_ip(request):
     return ip
 
 SAMPLE_RATE = 16000
-
-
 pipeline = OnlineSpeakerDiarization(
     step=0.5,
     latency=0.5,
@@ -75,8 +72,6 @@ pipeline = OnlineSpeakerDiarization(
     beta=10,
     max_speakers=5,
 )
-
-
 def predict_mul(request, filepath):
   if request.method == 'POST' and filepath:
     save_root = '/'.join(filepath.split('/')[:-1]) + '/'
@@ -131,7 +126,6 @@ def predict_mul(request, filepath):
       os.remove(filepath)
       return response
     except:
-      print("what")
       response = JsonResponse({'status': 'fail', 'description': 'Detection Failed!!'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
       os.remove(current_diarization)
       os.remove(filepath)

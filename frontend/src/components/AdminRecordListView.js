@@ -1,9 +1,6 @@
-/* eslint-disable */
-
 import React from "react";
 import { Link, Redirect } from "react-router-dom";
 import web_link from "../web_link";
-//import { Empty, Pagination } from 'antd';
 import Header from "../elements/header";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Spinner } from "react-bootstrap";
@@ -106,7 +103,6 @@ export default class AdminRecordListView extends React.Component {
       .then((res) => res.json())
       .then((res) => {
         window.location.reload(true);
-        //this.props.history.push('/dashboard');
         this.props.history.push("/admin_record/" + slug);
         return <Redirect to="/login" />;
       })
@@ -164,7 +160,6 @@ export default class AdminRecordListView extends React.Component {
                     onClick={this.onAnalyzeHandler}
                     disabled={analyzeIsDisabled}
 
-                    //disabled = {submitIsDisabled}
                   >
                     Analyze
                   </button>
@@ -184,11 +179,6 @@ export default class AdminRecordListView extends React.Component {
                       transform: "translateY(0)",
                     }}
                     disabled="disabled"
-                    //onClick={() => {
-                    //onFinalSubmitHandler();
-                    //}}
-
-                    //disabled = {submitIsDisabled}
                   >
                     Already Analyzed
                   </button>
@@ -228,7 +218,6 @@ export default class AdminRecordListView extends React.Component {
                         <th scope="row" className="align-middle">
                           {index + 1}
                         </th>
-                        {/* <td className="align-middle">{record.filename}</td> */}
                         <td className="align-middle">{user_name}</td>
                         <td className="align-middle">{record.created_at}</td>
                         {exams[0].analyze === 1 ? (

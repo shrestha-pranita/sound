@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import { Link, Redirect } from "react-router-dom";
 import axios from "axios";
 import web_link from "../web_link";
-//import { Empty, Pagination } from 'antd';
 import Header from "../elements/header";
 
 export default class AdminExamListView extends Component {
@@ -43,27 +42,6 @@ export default class AdminExamListView extends Component {
     if (userData) {
       userData = JSON.parse(userData);
     }
-
-    //let user_id = userData.id
-    /*
-        fetch(web_link+'/api/exams', {
-            method: "GET",
-            })
-            .then((res) => res.json())
-            .then((res) => {
-              console.log(res.data)
-              this.setState({
-                exams: res.data,
-                status_val: "success"
-              });
-              
-            })
-            .catch((err) => {
-              this.setState({
-                status_val: "fail",
-              });
-            })
-            */
 
     axios({
       method: "get",
