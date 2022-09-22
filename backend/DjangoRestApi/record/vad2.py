@@ -32,7 +32,9 @@ class RTTMWriter(Observer):
       self.path.unlink()
 
   def patch_rttm(self):
-    """Stitch same-speaker turns that are close to each other"""
+    """
+    pattch_rttm function: Stitch same-speaker turns that are close to each other
+    """
     loaded_rttm = list(load_rttm(self.path).values())
     if len(loaded_rttm) != 0:
       annotation = loaded_rttm[0]

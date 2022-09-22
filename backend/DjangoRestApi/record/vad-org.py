@@ -39,7 +39,7 @@ class RTTMWriter(Observer):
       self.path.unlink()
 
   def patch_rttm(self):
-    """Stitch same-speaker turns that are close to each other"""
+   
     loaded_rttm = list(load_rttm(self.path).values())
     if len(loaded_rttm) != 0:
       annotation = loaded_rttm[0]
@@ -70,9 +70,6 @@ def get_client_ip(request):
     return ip
 
 SAMPLE_RATE = 16000
-#VAD = VAD.from_hparams(source="speechbrain/vad-crdnn-libriparty", savedir="pretrained_models/vad-crdnn-libriparty", overrides={"sample_rate": SAMPLE_RATE})
-                       #savedir="pretrained_models/vad-crdnn-libriparty")
-# VAD = VAD.from_hparams(source="speechbrain/vad-crdnn-libriparty", savedir="pretrained_models/vad-crdnn-libriparty")
 
 pipeline = OnlineSpeakerDiarization(
     step=0.5,
@@ -91,7 +88,6 @@ def audio_to_spectrogram(test_audio_filename):
     mfccs_scaled_features = np.mean(spectrogram_test,axis=0)
     print(spectrogram_test.shape)
     spectrogram_test = np.reshape(spectrogram_test,(1,128,44,1))
-    #spectrogram_test = np.reshape(spectrogram_test,(1,128,216,1))
     return spectrogram_test
 
 def env_classification(filepath):
@@ -122,7 +118,6 @@ def predict(request, filepath):
       return response
     noise_presence = 'no'
     multi_speaker = 'no'
-    #base_name = filepath.split('/')[-1]
     base_name = Path(filepath).stem
     current_diarization = save_root + 'Diarization/' + base_name + '.txt'
     try:
@@ -138,11 +133,6 @@ def predict(request, filepath):
       env_classification(filepath)
       if np.sum(flatness)/np.prod(flatness.shape) > 0.3:
         noise_presence = 'yes'
-      # speech_probs = VAD.get_speech_prob_chunk(torch.tensor(data))
-      # activation_pass_values = VAD.apply_threshold(speech_probs).numpy()
-      # vad_prob = activation_pass_values.sum()/np.prod(activation_pass_values.shape)
-      # confidence = speech_probs.numpy().sum()/np.prod(activation_pass_values.shape)
-      # if vad_prob > 0.5:
       source_temp = Path(filepath).expanduser()
       audio_source = src.FileAudioSource(
           file=source_temp,

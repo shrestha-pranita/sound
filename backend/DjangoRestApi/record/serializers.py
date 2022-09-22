@@ -32,12 +32,7 @@ class RecordingForeignSerializer(serializers.ModelSerializer):
     exam_id = serializers.PrimaryKeyRelatedField(queryset=Exam.objects.all(),
                                                   many=False)  
     exam_name = serializers.RelatedField(source='recordings_2.exam_name', read_only=True)
-    #exam_name = serializers.RelatedField(queryset=Exam.objects.all(), many = True)
-    #exams = ExamSerializer(many=True)
-    #exams = serializers.ForeignKey(Exam, related_name='exam_list')
-    #exams= ExamSerializer(read_only=True)
-    #exam_id = ExamSerializer(many=True)
-    #creator_user_id = UserSerializer(many=True)
+ 
 
     class Meta:
         model = Recording

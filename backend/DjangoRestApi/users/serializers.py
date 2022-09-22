@@ -12,9 +12,11 @@ class UserSerializer(serializers.ModelSerializer):
                 'password',
                 'is_superuser',
                 'is_active',
-                #'contract_signed',
                 'created_at',
                 'last_modified_at')
+
+
+#login Serializer 
 
 class LoginSerializer(serializers.Serializer):  
     username = serializers.CharField(label="Username", required=True)
