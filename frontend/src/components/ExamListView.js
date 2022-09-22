@@ -43,27 +43,6 @@ export default class ExamListPage extends Component {
         if(userData){
             userData = JSON.parse(userData);
         }
-    
-        //let user_id = userData.id
-        /*
-        fetch(web_link+'/api/exams', {
-            method: "GET",
-            })
-            .then((res) => res.json())
-            .then((res) => {
-              console.log(res.data)
-              this.setState({
-                exams: res.data,
-                status_val: "success"
-              });
-              
-            })
-            .catch((err) => {
-              this.setState({
-                status_val: "fail",
-              });
-            })
-            */
 
         axios({
             method: 'get',
@@ -83,7 +62,6 @@ export default class ExamListPage extends Component {
             });
       }
       
-    
     render() {
         const {
           status_val,
