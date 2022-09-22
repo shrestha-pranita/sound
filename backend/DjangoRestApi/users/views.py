@@ -19,6 +19,11 @@ def get_tokens_for_user(user):
 
 @api_view(['GET','POST'])
 def login(request):
+    """
+    login function takes an HttpRequest object and a User object
+    :param request: contains request data sent from frontend
+    return:  user login
+    """
     data=request.data
     serializers=LoginSerializer(data=data)
     print(serializers)
@@ -47,6 +52,11 @@ def login(request):
 
 @api_view(['GET','POST'])
 def register(request):
+    """
+    register function take the information from the users
+    :param request: contains request data sent from frontend
+    return:  register the  users    
+    """    
     print(request.data)
     serializer=RegistrationSerializer(data= request.data) 
     if serializer.is_valid():
@@ -60,6 +70,12 @@ def register(request):
 
 @api_view(['GET', 'POST', 'DELETE'])
 def user_list(request):
+    """
+    user_list function fetches the list of users from database
+    :param request: contains request data sent from frontend
+    :return: list of user detail
+
+    """
     if request.method == 'GET':
         try:
             users = User.objects.all()                       
@@ -84,6 +100,13 @@ def user_list(request):
 
 @api_view(['GET', 'PUT', 'DELETE'])
 def user_detail(request, pk):
+
+    """
+    user_details function fetches the details of users from database
+    :param request: contains request data sent from frontend
+    :return: list of user detail
+    
+    """
     try: 
         user = User.objects.get(pk=pk) 
     except User.DoesNotExist: 
