@@ -14,7 +14,6 @@ export default class LoginPage extends Component {
         authError: false,
         isLoading: false,
         location: {},
-        //history: useHistory(),
     };
 
     handleNameChange = event => {
@@ -23,13 +22,10 @@ export default class LoginPage extends Component {
     handlePwdChange = event => {
         this.setState({password: event.target.value});
     };
-
-
     handleCheckAuth = user => {
         this.setState({redirect: true, isLoading: false,redirectPath: '/vad1'});     
         
-    }
-    
+    }    
     handleSubmit = event => {
         event.preventDefault();
         this.setState({isLoading: true});
@@ -46,7 +42,6 @@ export default class LoginPage extends Component {
             if(res.status === 200){
                 localStorage.setItem('token', res.data.access);
                 localStorage.setItem('user', JSON.stringify(res.data))
-                //this.setState({redirect: true, isLoading: false,redirectPath: '/vad1'});
                 localStorage.setItem('isLoggedIn', true);
                 this.props.history.push('/dashboard');
             }                            
@@ -56,7 +51,6 @@ export default class LoginPage extends Component {
             this.setState({authError: true, isLoading: false});
         });
     };
-
     componentDidMount() {
         if(window.localStorage.getItem('isLoggedIn')){
             let userData = window.localStorage.getItem('user');
@@ -68,13 +62,11 @@ export default class LoginPage extends Component {
             }
         }
     }
-
     renderRedirect = () => {
         if (this.state.redirect) {
             return <Redirect to={this.state.redirectPath}/>
         }
     };
-
     render() {
         const isLoading = this.state.isLoading;
         return (

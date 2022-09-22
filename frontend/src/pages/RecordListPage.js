@@ -4,8 +4,7 @@ import RecordListView from "../components/RecordListView";
 export default class RecordListPage extends React.Component {
   render() {
      
-    return (
-      
+    return (      
       <RecordListView/>
     );
   }

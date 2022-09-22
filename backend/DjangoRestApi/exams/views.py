@@ -19,7 +19,6 @@ from record.models import Recording
 
 @api_view(['GET', 'POST', 'DELETE'])
 def exam_list(request):
-
     """
     exam_list function fetches the list of exam from database
     :param request: contains request data sent from frontend
@@ -39,12 +38,10 @@ def exam_list(request):
 @api_view(['GET', 'POST'])
 def exam_detail(request, exam_id):
     """
-    exam_details function fetched the 
+    exam_details function fetched the details of exam from database
     :param request: contains request data sent from frontend
     :param exam_id: fetching user_id from frontend
     :return: return the message if there is no exam active
-
-
     """
    
     if request.method == 'POST':

@@ -4,7 +4,6 @@ import {Link, Redirect} from 'react-router-dom';
 import  web_link from "../../web_link";
 
 export default class RegisterPage extends Component {
-
     state = {
         name: '',
         email: '',
@@ -13,7 +12,6 @@ export default class RegisterPage extends Component {
         authError: false,
         isLoading: false,
     };
-
     handleEmailChange = event => {
         this.setState({ email: event.target.value });
     };
@@ -35,8 +33,6 @@ export default class RegisterPage extends Component {
         bodyFormData.set('email', email);
         bodyFormData.set('username', name);
         bodyFormData.set('password', password);
-      
-
         axios.post(url, bodyFormData)
             .then(result => {
                 this.setState({isLoading: false});

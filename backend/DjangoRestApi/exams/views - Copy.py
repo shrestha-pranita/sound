@@ -16,12 +16,10 @@ from django.shortcuts import get_object_or_404
 class ExamViewSet(viewsets.ModelViewSet):
     queryset = Exam.objects.all()
 
-    def get_serializer_class(self):
-        
-      
+    def get_serializer_class(self):          
         return ExamSerializer
 
-    def list(self, request, *args, **kwargs):                  
+    def list(self, request, *args, **kwargs):              
         exams = Exam.objects.all()
         serializer = ExamSerializer(exams, many=True)
         oi_dict = model_to_dict(serializer)

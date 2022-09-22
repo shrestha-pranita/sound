@@ -103,9 +103,9 @@ def user_detail(request, pk):
 
     """
     user_details function fetches the details of users from database
-    :param request: contains request data sent from frontend
-    :return: list of user detail
-    
+    param request: contains request data sent from frontend
+    param pk: 
+    return: list of user detail    
     """
     try: 
         user = User.objects.get(pk=pk) 

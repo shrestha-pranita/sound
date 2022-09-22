@@ -17,13 +17,9 @@ import RecordViewPage from "./pages/RecordViewPage";
 import AdminExamListPage from "./pages/AdminExamListPage";
 import AdminRecordListPage from "./pages/AdminRecordListPage";
 import AdminRecordViewPage from "./pages/AdminRecordViewPage";
-
-//import './App.css';
-
 class App extends Component {
     render() {
-        return (
-            
+        return (            
             <Router>
             <div className="App">
                     <Switch>
@@ -32,22 +28,18 @@ class App extends Component {
                         <Route exact path='/dashboard' component={ExamListPage} />
                         <Route exact path='/exam' component={ExamListPage} />
                         <Route path='/register' component={RegisterPage} />
-
                         <Route exact path='/records/:record_id' component={RecordViewPage} />
                         <Route exact path='/startexam/:exam_id' component={VAD1Page} />
                         <Route exact path='/admin_exam' component={AdminExamListPage} />
                         <Route exact path='/admin_record/:exam_id' component={AdminRecordListPage} />
                         <Route exact path='/admin_record_view/:record_id' component={AdminRecordViewPage} />
-
                         <Route exact path='/speakersample' component={SpeakerSamplePage} />
                         <Route exact path='/speakerrec' component={SpeakerRecognitionPage} />
-
                         <Route exact path='/vad1' component={VAD1Page} />
                         <Route exact path='/vad2' component={VAD2Page} />
                         <Route exact path='/vad3' component={VAD3Page} />
                         <Route exact path='/mulspeaker1' component={MulSpeaker1Page} />
-                        <Route exact path='/mulspeaker2' component={MulSpeaker2Page} />
-                      
+                        <Route exact path='/mulspeaker2' component={MulSpeaker2Page} />                      
                         <Route exact path='/speech' component={SpeechPage} />
                         <Route exact path='/record' component={RecordListPage} />
 

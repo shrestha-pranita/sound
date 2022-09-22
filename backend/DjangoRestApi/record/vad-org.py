@@ -21,7 +21,6 @@ from typing import Union, Text, Optional, Tuple
 from pyannote.core import Annotation, SlidingWindowFeature
 from speechbrain.pretrained import VAD
 from pathlib import Path
-
 import tensorflow as tf
 from tensorflow import keras
 from keras.models import Sequential
@@ -37,9 +36,7 @@ class RTTMWriter(Observer):
     self.path = Path(path)
     if self.path.exists():
       self.path.unlink()
-
-  def patch_rttm(self):
-   
+  def patch_rttm(self):   
     loaded_rttm = list(load_rttm(self.path).values())
     if len(loaded_rttm) != 0:
       annotation = loaded_rttm[0]
@@ -68,9 +65,7 @@ def get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
-
 SAMPLE_RATE = 16000
-
 pipeline = OnlineSpeakerDiarization(
     step=0.5,
     latency=0.5,
@@ -81,7 +76,6 @@ pipeline = OnlineSpeakerDiarization(
     beta=10,
     max_speakers=5,
 )
-
 def audio_to_spectrogram(test_audio_filename):
     audio, sample_rate = librosa.load(test_audio_filename, res_type='kaiser_fast')
     spectrogram_test = librosa.feature.melspectrogram(audio,sample_rate)
@@ -94,8 +88,6 @@ def env_classification(filepath):
   esc50_csv = './ESC-50/meta/esc50.csv'
   pd_data = pd.read_csv(esc50_csv)
   my_classes=list(pd_data["category"].unique())
-
-
   keras_model_path = './models'
   reloaded_model = keras.models.load_model(keras_model_path)
   reloaded_model.predict(audio_to_spectrogram(filepath))
@@ -129,7 +121,6 @@ def predict(request, filepath):
       data = nr.reduce_noise(y=src_data, sr=SAMPLE_RATE)
       sample_float = (src_data/32768).astype(np.float32)
       flatness = librosa.feature.spectral_flatness(y=sample_float)
-
       env_classification(filepath)
       if np.sum(flatness)/np.prod(flatness.shape) > 0.3:
         noise_presence = 'yes'

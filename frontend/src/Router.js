@@ -3,13 +3,10 @@ import { Switch, Route } from 'react-router-dom';
 import { withRouter } from 'react-router';
 import RecordPage from "./pages/RecordPage";
 import TestPage from "./pages/TestPage";
-
 class RouterView extends Component {
-
     constructor(props) {
         super(props);
     }
-
     render() {
         return <Switch>
             <Route exact path='/' component={RecordPage} />
@@ -17,5 +14,4 @@ class RouterView extends Component {
         </Switch>
     }
 }
-
 export default withRouter(RouterView)

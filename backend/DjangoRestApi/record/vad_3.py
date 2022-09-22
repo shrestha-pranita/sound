@@ -21,14 +21,12 @@ from typing import Union, Text, Optional, Tuple
 from pyannote.core import Annotation, SlidingWindowFeature
 from speechbrain.pretrained import VAD
 from pathlib import Path
-
 import tensorflow as tf
 from tensorflow import keras
 from keras.models import Sequential
 from keras.layers import Conv2D, MaxPooling2D
 from keras.layers import Dense, Dropout, Flatten, Activation
 import pandas as pd
-
 
 class RTTMWriter(Observer):
   def __init__(self, path: Union[Path, Text], patch_collar: float = 0.05):
@@ -83,15 +81,10 @@ pipeline = OnlineSpeakerDiarization(
 
 def audio_to_spectrogram(test_audio_filename):
     audio, sample_rate = librosa.load(test_audio_filename, res_type='kaiser_fast')
-    spectrogram_test = librosa.feature.melspectrogram(audio,sample_rate)
-
-    
+    spectrogram_test = librosa.feature.melspectrogram(audio,sample_rate)    
     SPEC_H = 128
-    SPEC_W = 216
-    
-    
+    SPEC_W = 216    
     spectrogram_test = np.resize(spectrogram_test,(1,SPEC_H, SPEC_W,1))
-
     return spectrogram_test
 
 def env_classification(filepath):
@@ -164,13 +157,10 @@ def predict(request, filepath):
       try:
         speech_probs = VAD.get_speech_prob_chunk(torch.tensor(data))
       except:
-        print("no")
-      print(speech_probs)
-      print("What")
-      activation_pass_values = VAD.apply_threshold(speech_probs).numpy()
+     
+        activation_pass_values = VAD.apply_threshold(speech_probs).numpy()
       vad_prob = activation_pass_values.sum()/np.prod(activation_pass_values.shape)
       confidence = speech_probs.numpy().sum()/np.prod(activation_pass_values.shape)
-      print("herrtre")
       speech_detection = 'no'
       if vad_prob > 0.5:
         speech_detection = 'yes'

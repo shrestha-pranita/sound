@@ -65,10 +65,6 @@ def get_client_ip(request):
     return ip
 
 SAMPLE_RATE = 16000
-#VAD = VAD.from_hparams(source="speechbrain/vad-crdnn-libriparty", savedir="pretrained_models/vad-crdnn-libriparty", overrides={"sample_rate": SAMPLE_RATE})
-                       #savedir="pretrained_models/vad-crdnn-libriparty")
-# VAD = VAD.from_hparams(source="speechbrain/vad-crdnn-libriparty", savedir="pretrained_models/vad-crdnn-libriparty")
-
 pipeline = OnlineSpeakerDiarization(
     step=0.5,
     latency=0.5,
@@ -94,7 +90,6 @@ def predict(request, filepath):
     noise_presence = 'no'
     multi_speaker = 'no'
     speak_presence = 'no'
-    #base_name = filepath.split('/')[-1]
     base_name = Path(filepath).stem
     current_diarization = save_root + 'Diarization/' + base_name + '.txt'
     try:
@@ -108,11 +103,6 @@ def predict(request, filepath):
       flatness = librosa.feature.spectral_flatness(y=sample_float)
       if np.sum(flatness)/np.prod(flatness.shape) > 0.3:
         noise_presence = 'yes'
-      # speech_probs = VAD.get_speech_prob_chunk(torch.tensor(data))
-      # activation_pass_values = VAD.apply_threshold(speech_probs).numpy()
-      # vad_prob = activation_pass_values.sum()/np.prod(activation_pass_values.shape)
-      # confidence = speech_probs.numpy().sum()/np.prod(activation_pass_values.shape)
-      # if vad_prob > 0.5:
       source_temp = Path(filepath).expanduser()
       audio_source = src.FileAudioSource(
           file=source_temp,

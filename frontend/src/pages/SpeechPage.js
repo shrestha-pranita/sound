@@ -4,8 +4,7 @@ import Speech from "../components/SpeechView";
 export default class SpeechPage extends React.Component {
   render() {
      
-    return (
-      
+    return (    
       <Speech/>
     );
   }

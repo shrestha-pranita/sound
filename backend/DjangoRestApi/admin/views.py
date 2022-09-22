@@ -4,12 +4,8 @@ from rest_framework.decorators import api_view
 from exams.models import Exam
 from record.models import Recording
 from record.serializers import RecordingSerializer, RecordingForeignSerializer
-#from recordings.models import Recording
 from django.core import serializers
-
 from exams.serializers import ExamSerializer, ExamForeignSerializer
-#from recordings.serializers import RecordingSerializer, RecordingForeignSerializer
-
 from django.http import JsonResponse
 from rest_framework import permissions, status
 from rest_framework.parsers import JSONParser 
@@ -34,30 +30,31 @@ import soundfile
 
 @api_view(['GET', 'POST', 'DELETE'])
 def admin_exam_list(request):
-    #print(request.META['Authorization'])
-    #permission_classes = (IsAuthenticated,) 
-    #print(request.headers['Authorization'])
+    """
+    admin_exam_list function fetches the list of exam from database
+    :param request: contains request data sent from frontend
+    :return: list of exam details
+    """  
     if request.method == 'GET':
         try:
-            print("here")
             exams = Exam.objects.filter(status=1)
             print(exams)
             exam_serializer = ExamSerializer(exams, many=True)
             return JsonResponse(exam_serializer.data, safe=False)
-            #exam_id = Question.objects.filter(status=1).values('exam_id').distinct()
-            #exams = Exam.objects.filter(id__in = exam_id).filter(status__exact=1)   
-            #print(exams)
-            #exam_serializer = ExamSerializer(exams, many=True)
-            #return JsonResponse(exam_serializer.data, safe=False)
         except: 
             return JsonResponse({'message': 'There are no exams at the moment'}, status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(['GET', 'POST', 'DELETE'])
 def admin_record_list(request, exam_id):
+    """
+    admin_record_list function fetches the list of record from database
+    :param request: contains request data sent from frontend
+    param exam_id: contrains exam id sent from frontend
+    :return: list of records details
+    """  
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     if request.method == "POST":
-        print("no")
         exam_id = request.data["exam_id"]
         try:
             exams = Exam.objects.filter(id__exact=exam_id)
@@ -65,9 +62,7 @@ def admin_record_list(request, exam_id):
 
             recordings = Recording.objects.filter(exam_id_id__exact=exam_id) 
             recording_serializer = RecordingForeignSerializer(recordings, many=True) 
-            #data = serializers.serialize('json', [recording_serializer,])
             return JsonResponse({"data":recording_serializer.data, "exam": exam_serializer.data, "status":"success"}, safe=False)
-            #return JsonResponse({'data': recording_serializer.data}, safe=False)
         except: 
             return JsonResponse({'data': 'fail'}, status=status.HTTP_204_NO_CONTENT)
     else:
@@ -76,7 +71,7 @@ def admin_record_list(request, exam_id):
 def dissect_speech(audio_path, RATE, model):
     wav = read_audio(audio_path, RATE)
     vad_iterator = VADIterator(model)
-    window_size_samples = 1536 # number of samples in a single audio chunk       
+    window_size_samples = 1536    
     start = []
     end = []
     timestamp = []
@@ -91,7 +86,6 @@ def dissect_speech(audio_path, RATE, model):
                     start.append(value)
                 else:
                     end.append(value)
-            #print("{}--test".format(speech_dict, end=' '))
     if len(start) != len(end):
         d = librosa.get_duration(filename=audio_path)
         end.append(d)
@@ -102,7 +96,7 @@ def dissect_speech(audio_path, RATE, model):
     return start, end
 
 
-def convert(time_val):
+def convert(time_val):    
     t = float(time_val)
     hours = int(t // 3600)
     minutes = int((t % 3600) // 60)
@@ -111,14 +105,17 @@ def convert(time_val):
 
 @api_view(['GET', 'POST'])
 def recordingViews(request, record_id):
-    print("how")
-    print(record_id)
+    """
+    recording  function fetches the list of record from database
+    :param request: contains request data sent from frontend
+    param record_id: contains record id sent from frontend
+    :return: list of recording
+    """  
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     if request.method == "POST":
         user_id = request.data['user_id']
         try:
             filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            #print(filepath)
             recordings = Recording.objects.filter(id__exact=record_id)   
             recording_serializer = RecordingSerializer(recordings, many=True)
             recording_data = json.loads(json.dumps(recording_serializer.data))
@@ -152,8 +149,6 @@ def recordingViews(request, record_id):
             index = 0
             for filename in os.listdir(folder_name):
                 file_list = defaultdict(list)
-                
-
                 file_list["split"].append(audio_folder_name + "/" + os.path.splitext(filename)[0])
                 file_list["full"].append(audio_folder_name + "/" + filename)
                 file_list["start"].append(time_detail[index]["start"][0])
@@ -169,14 +164,18 @@ def recordingViews(request, record_id):
 
 @api_view(['GET', 'POST'])
 def userRecordingViews(request, record_id):
-    print("how")
-    print(record_id)
+    """
+    userrecording  function fetches the list of record of users from database
+    :param request: contains request data sent from frontend
+    param record_id: contains record id sent from frontend
+    :return: list of recording
+    """ 
+
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     if request.method == "POST":
         user_id = request.data['user_id']
         try:
             filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            #print(filepath)
             recordings = Recording.objects.filter(id__exact=record_id)   
             recording_serializer = RecordingSerializer(recordings, many=True)
             recording_data = json.loads(json.dumps(recording_serializer.data))
@@ -209,14 +208,11 @@ def userRecordingViews(request, record_id):
 
             index = 0
             for filename in os.listdir(folder_name):
-                file_list = defaultdict(list)
-                
-
+                file_list = defaultdict(list)        
                 file_list["split"].append(audio_folder_name + "/" + os.path.splitext(filename)[0])
                 file_list["full"].append(audio_folder_name + "/" + filename)
                 file_list["start"].append(time_detail[index]["start"][0])
-                file_list["end"].append(time_detail[index]["end"][0])
-   
+                file_list["end"].append(time_detail[index]["end"][0])   
                 data.append(file_list)
                 index += 1
 
@@ -227,6 +223,14 @@ def userRecordingViews(request, record_id):
 
 @api_view(['GET', 'POST', 'DELETE'])
 def admin_analyze(request, exam_id):
+    """
+    admin_analyze function fetched the admin 
+    :param request: contains request data sent from frontend
+    :param exam_id: fetching user_id from frontend
+    :return: return staus
+
+
+    """
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     if request.method == "POST":
         exam_id = request.data["exam_id"]
@@ -256,19 +260,14 @@ def admin_analyze(request, exam_id):
                     timestamp = []
 
                     wholeAudio = AudioSegment.from_wav(filepath)
-                    #wholeAudio = AudioSegment.from_mp3(filepath)
 
                     start, end = dissect_speech(filepath, RATE, model)
-
-                    #wholeAudio = AudioSegment.from_wav(filepath)
-                    #print(wholeAudio)
-
                     f = open(exam_text_folder + "/" + text_file_name, "w")
                     f.write("start, end (in seconds)\n")
                     if len(start) !=0:
                         for i in range(0, len(start)):
 
-                            t1 = int(start[i]) * 1000 #Works in milliseconds
+                            t1 = int(start[i]) * 1000 
                             t2 = int(end[i]) * 1000
 
                             if t1 != t2:
@@ -289,18 +288,20 @@ def admin_analyze(request, exam_id):
                     f.close()
             
             exams = Exam.objects.filter(id__exact=exam_id).update(analyze = 1)
-            #print(exams)
-            #store = Exam(filename = folder_name + "/" + filename, folder_name = basename, created_at = datetime.now(), user_id_id = user_id, exam_id_id = exam_id)
-            #store.save()
-
             return JsonResponse({'status': 'success'}, status=status.HTTP_200_OK)
-            #return JsonResponse({'data': recording_serializer.data}, safe=False)
         except: 
             return JsonResponse({'data': 'fail'}, status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET', 'POST'])
 def exam_detail(request, exam_id):
-    print("herehehheheheheh")
+    """
+    exam_details function fetched the details of exam from database
+    :param request: contains request data sent from frontend
+    :param exam_id: fetching user_id from frontend
+    :return: return the message if there is no exam active
+
+
+    """
     if request.method == 'POST':
         try:
             user_id = request.data['user_id']
@@ -313,49 +314,3 @@ def exam_detail(request, exam_id):
         except:
             return JsonResponse({'message': 'Exam details not available'})
 
-"""
-@api_view(['GET', 'POST', 'DELETE'])
-#@authentication_classes([SessionAuthentication, BasicAuthentication])
-@permission_classes([IsAuthenticated])
-def exam_list(request):
-    #print(request.META['Authorization'])
-    #permission_classes = (IsAuthenticated,) 
-    #print(request.headers['Authorization'])
-    if request.method == 'GET':
-        try:
-            print("here")
-            exam_id = Question.objects.filter(status=1).values('exam_id').distinct()
-            exams = Exam.objects.filter(id__in = exam_id).filter(status__exact=1)   
-            print(exams)
-            exam_serializer = ExamSerializer(exams, many=True)
-            return JsonResponse(exam_serializer.data, safe=False)
-        except: 
-            return JsonResponse({'message': 'There are no exams at the moment'}, status=status.HTTP_404_NOT_FOUND)
-    
-    elif request.method == 'POST':
-        exam_data = JSONParser().parse(request)
-        exam_serializer = ExamSerializer(data=exam_data)
-        if exam_serializer.is_valid():
-            exam_serializer.save()
-            return JsonResponse(exam_serializer.data, status=status.HTTP_201_CREATED) 
-        return JsonResponse(exam_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    elif request.method == 'DELETE':
-        count = Exam.objects.all().delete()
-        return JsonResponse({'message': '{} Exams were deleted successfully!'.format(count[0])}, status=status.HTTP_204_NO_CONTENT)
-
-@api_view(['GET'])
-@permission_classes((IsAuthenticated,))
-def recording_list(request):
-    id = request.user.id
-    if request.method == 'GET':
-        try:
-            recordings = Recording.objects.filter(user_id=id).select_related('user_id')
-            #recordings = RecordingForeignSerializer.objects.filter(user_id_id__exact=id) 
-            #query = "select recordings.id, recordings.recording_start_time recording.created_at as created_at, question.question_text as question_text, user.username as user from recording inner join question inner join user on recording.question_id = question.id and recording.user_id=user.id"  
-            recording_serializer = RecordingForeignSerializer(recordings, many=True)
-            return JsonResponse(recording_serializer.data, safe=False)
-        except: 
-            return JsonResponse({'message': 'There are no exams at the moment'}, status=status.HTTP_404_NOT_FOUND)
-
-"""
