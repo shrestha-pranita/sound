@@ -2,8 +2,6 @@ from rest_framework import serializers
 from exams.models import Exam
 from users.models import User
 
-
-
 class ExamSerializer(serializers.ModelSerializer):
     class Meta:
         model = Exam
@@ -13,8 +11,6 @@ class ExamSerializer(serializers.ModelSerializer):
                 'status',
                 'created_at',
                 'last_modified_at')
-
-
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -28,8 +24,6 @@ class UserSerializer(serializers.ModelSerializer):
                 'created_at',
                 'last_modified_at')
  
-
-
 class ExamForeignSerializer(serializers.ModelSerializer):    
     class Meta:
         model = Exam
