@@ -23,7 +23,9 @@ def exam_list(request):
     exam_list function fetches the list of exam from database
     :param request: contains request data sent from frontend
     :return: list of exam details
-    """     
+    """  
+    response = JsonResponse({'status': 'fail'}, status=status.HTTP_404_NOT_FOUND)
+
     if request.method == 'GET':
 
         try:
@@ -33,21 +35,21 @@ def exam_list(request):
             
         except: 
             return JsonResponse({'message': 'There are no exams at the moment'}, status=status.HTTP_404_NOT_FOUND)
+    return response
  
 
 @api_view(['GET', 'POST'])
 def exam_detail(request, exam_id):
     """
-    exam_details function fetched the details of exam from database
+    exam_detail function fetched the details of exam from database
     :param request: contains request data sent from frontend
-    :param exam_id: fetching user_id from frontend
-    :return: return the message if there is no exam active
+    :param exam_id: contains exam_id of the paricular exam sent from the frontend
+    :return: return exam details of the particular exam
     """
-   
+    response = JsonResponse({'status': 'fail'}, status=status.HTTP_404_NOT_FOUND)
     if request.method == 'POST':
       
         try:
-            user_id = request.data['user_id']  
             exam_id = request.data['exam_id']   
             exams = Exam.objects.filter(id__in = exam_id).filter(status__exact=1)  
             exam_serializer = ExamSerializer(exams, many=True)  
@@ -55,4 +57,8 @@ def exam_detail(request, exam_id):
             return JsonResponse(exam_serializer.data, safe=False)  
         except:
             return JsonResponse({'message': 'Exam details not available'})
+    
+    return response
+
+
          
