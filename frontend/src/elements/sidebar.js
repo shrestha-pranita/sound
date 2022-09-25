@@ -20,7 +20,6 @@ export default class Sidebar extends Component {
                         <Link to={'/dashboard'} className="nav-link"><i className="fas fa-fw fa-tachometer-alt"></i>
                             <span>&nbsp;Dashboard</span></Link>
                     </li>
-
                     <li className="nav-item">
                         <Link to={'/profile'} className="nav-link"><i className="fas fa-fw fa-user"></i>
                             <span>&nbsp;Profile</span></Link>

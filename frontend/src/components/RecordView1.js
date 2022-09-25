@@ -3,11 +3,9 @@ import React, { useEffect, useState } from "react";
 import { useSnackbar } from "react-simple-snackbar";
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
-
 let samples = [];
 let localMic, context, source, processor;
 const PREDICTAPI = process.env.NEXT_PUBLIC_BACKEND_BASE_URL;
-
 const RecordView = (props) => {
   const [second, setSecond] = useState("00");
   const [minute, setMinute] = useState("00");
@@ -16,7 +14,6 @@ const RecordView = (props) => {
   const [bgcolor, setBgColor] = useState("green");
   const [speakingColor, setSpeakingColor] = useState("green");
   const [noiseSwitchColor, setNoiseSwitchColor] = useState("green");
-
   const options = {
     position: "top-center",
     style: {
@@ -30,37 +27,6 @@ const RecordView = (props) => {
       fontSize: "16px",
     },
   };
-
-  //const [openSnackbar, _] = useSnackbar(options);
-
-  /*useEffect(() => {
-    let intervalId;
-    
-
-    if (isActive) {
-      intervalId = setInterval(() => {
-        const secondCounter = counter % 60;
-        const minuteCounter = Math.floor(counter / 60);
-
-        let computedSecond =
-          String(secondCounter).length === 1
-            ? `0${secondCounter}`
-            : secondCounter;
-        let computedMinute =
-          String(minuteCounter).length === 1
-            ? `0${minuteCounter}`
-            : minuteCounter;
-
-        setSecond(computedSecond);
-        setMinute(computedMinute);
-
-        setCounter((counter) => counter + 1);
-      }, 650);
-    }
-    return () => clearInterval(intervalId);
-  }, [isActive, counter]);
-  */
-
   useEffect(() => {
     try {
       navigator.mediaDevices
@@ -77,8 +43,6 @@ const RecordView = (props) => {
       console.error("start Mic error", e);
     }
   }, []);
-
-
   function stopTimer() {
     setIsActive(false);
     setCounter(0);
@@ -89,7 +53,6 @@ const RecordView = (props) => {
   function testclick() {
     console.log("here")
   }
-
   const {
     status,
     startRecording,
@@ -102,7 +65,6 @@ const RecordView = (props) => {
     echoCancellation: true
   });
   console.log("deed", mediaBlobUrl);
-
   const predictSwitch = () => {
     if (bgcolor === "green") {
       setBgColor("darkred");
@@ -120,7 +82,6 @@ const RecordView = (props) => {
             out.push(val);
           }
           samples = samples.slice(48000);
-
           fetch(PREDICTAPI, {
             method: "POST",
             headers: {
@@ -144,7 +105,6 @@ const RecordView = (props) => {
       processor = null;
     }
   };
-
   const convertFileToBase64 = (file) =>
     new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -157,7 +117,6 @@ const RecordView = (props) => {
         });
       reader.onerror = reject;
     });
-
   return (
     <div
       style={{
@@ -222,7 +181,6 @@ const RecordView = (props) => {
             style={{
               fontSize: "15px",
               fontWeight: "Normal"
-              // marginTop: "20px"
             }}
             htmlFor="icon-button-file"
           >

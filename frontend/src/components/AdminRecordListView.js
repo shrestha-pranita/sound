@@ -20,7 +20,6 @@ export default class AdminRecordListView extends React.Component {
 
     this.onAnalyzeHandler = this.onAnalyzeHandler.bind(this);
   }
-
   componentDidMount() {
     if (window.localStorage.getItem("isLoggedIn")) {
       let userData = window.localStorage.getItem("user");

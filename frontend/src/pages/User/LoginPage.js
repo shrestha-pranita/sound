@@ -5,7 +5,6 @@ import TitleComponent from "../title";
 import  web_link from "../../web_link";
 
 export default class LoginPage extends Component {
-
     state = {
         email: '',
         password: '',
@@ -15,7 +14,6 @@ export default class LoginPage extends Component {
         isLoading: false,
         location: {},
     };
-
     handleNameChange = event => {
         this.setState({ name: event.target.value });
     };

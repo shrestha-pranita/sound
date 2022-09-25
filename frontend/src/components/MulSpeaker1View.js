@@ -6,8 +6,6 @@ import {Redirect } from 'react-router-dom';
 
 let samples = [];
 let context, source, processor;
-//const PREDICTAPI = process.env.NEXT_PUBLIC_BACKEND_BASE_URL;
-
 const RecordView = (props) => {
   const [second, setSecond] = useState("00");
   const [minute, setMinute] = useState("00");
@@ -110,7 +108,6 @@ const RecordView = (props) => {
     }}
     onClick={() => {
       pauseRecording();
-      //stopRecording();
       onStopRec();
       setIsActive(!isActive);
     }}
@@ -137,21 +134,6 @@ const RecordView = (props) => {
     audio: true,
     echoCancellation: true
   });
-  /*
-  const convertFileToBase64 = (file) =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file.mediaBlobUrl);
-
-      reader.onload = () =>
-        resolve({
-          fileName: file.title,
-          base64: reader.result
-        });
-      reader.onerror = reject;
-    });
-
-    */
     const predictSwitch = () => {
             processor = context.createScriptProcessor(16384, 1, 1);
             source.connect(processor);
@@ -167,20 +149,15 @@ const RecordView = (props) => {
                 out.push(val);
                 }
                 samples = samples.slice(48000);
-                //fetch(web_link+'/api/rctVAD', {
-                //fetch(web_link+'/api/speechVAD', {
                 fetch(web_link+'/api/mulspeaker1', {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    //'Access-Control-Allow-Origin': 'http://localhost:8000',
-                    //'Access-Control-Allow-Credentials': 'true'
                 },
                 body: JSON.stringify({
                     data: out,
                 }),
                 })
-                //.then((res) => res.json())
                 .then((res) => res.json())
                 .then((res) => setResult(res))
                 .catch((err) => console.log(err))
@@ -216,8 +193,6 @@ const RecordView = (props) => {
         backgroundColor: "black",
         width: "100%",
         height: "700px"
-        //width: "1100px",
-        //height: "700px"
       }}
     >
       <div
@@ -275,7 +250,6 @@ const RecordView = (props) => {
             style={{
               fontSize: "15px",
               fontWeight: "Normal"
-              // marginTop: "20px"
             }}
             htmlFor="icon-button-file"
           >

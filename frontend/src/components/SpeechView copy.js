@@ -1,23 +1,17 @@
 import React, { useState, useEffect } from "react";
 import  web_link from "../web_link";
-
 var a;
 const AudioPlay = () => {
-
     const [selectedFile, setSelectedFile] = useState();
     const [isFilePicked, setIsFilePicked] = useState(false);
     const [isSelected, setIsSelected] = useState(false);
-
     const changeHandler = (event) => {
         setSelectedFile(event.target.files[0]);
         setIsSelected(true);
     };
-
     const handleSubmission = () => {
         const formData = new FormData();
-
         formData.append('File', selectedFile);
-
         fetch(
             web_link+'/api/speech',
             {
@@ -33,8 +27,6 @@ const AudioPlay = () => {
                 console.error('Error:', error);
             });
     };
-    
-
     return(
     <div>
             <input type="file" name="file" onChange={changeHandler} />
@@ -57,5 +49,4 @@ const AudioPlay = () => {
         </div>
     )
 };
-
 export default AudioPlay;

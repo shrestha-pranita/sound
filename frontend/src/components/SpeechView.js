@@ -2,10 +2,7 @@ import React, { Component } from 'react';
 import { Link, Redirect } from 'react-router-dom';
 import axios from 'axios';
 import  web_link from "../web_link";
-//import { Empty, Pagination } from 'antd';
 import Header from '../elements/header';
-
-
 export default class SpeechView extends Component {
   constructor(props) {
     super(props);
@@ -15,9 +12,6 @@ export default class SpeechView extends Component {
       status_val : ""
     };
   }
-
-
-
   componentDidMount() {
     if (window.localStorage.getItem('isLoggedIn')) {
       let userData = window.localStorage.getItem('user');
@@ -67,11 +61,6 @@ export default class SpeechView extends Component {
         .catch((err) => console.log(err))
 
   }
-
-  //handleChange (value){
-  //setoffset((value - 1) * 10);
-  //};
-
   render() {
     const {
       status_val

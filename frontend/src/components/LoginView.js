@@ -41,7 +41,6 @@ const LoginView = () => {
           localStorage.clear();
           localStorage.setItem('token', data.key);
           history.push("/dasboard");
-          //window.location.replace('http://localhost:3000/dashboard');
         } else {
           setEmail('');
           setPassword('');

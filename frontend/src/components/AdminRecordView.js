@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { Link, Redirect, useParams, withRouter  } from 'react-router-dom';
 import axios from 'axios';
 import  web_link from "../web_link";
-//import { Empty, Pagination } from 'antd';
 import Header from '../elements/header';
 import ReactAudioPlayer from 'react-audio-player';
 
