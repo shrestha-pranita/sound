@@ -2,9 +2,7 @@ import React, { Component } from 'react';
 import { Link, Redirect } from 'react-router-dom';
 import axios from 'axios';
 import  web_link from "../web_link";
-//import { Empty, Pagination } from 'antd';
 import Header from '../elements/header';
-
 
 export default class RecordListView extends Component {
   constructor(props) {
@@ -18,8 +16,7 @@ export default class RecordListView extends Component {
   }
 
   componentDidMount() {
-    const currentURL = window.location.href // returns the absolute URL of a page
-
+    const currentURL = window.location.href 
     const pathname = window.location.pathname
     console.log(pathname)
     if (window.localStorage.getItem('isLoggedIn')) {

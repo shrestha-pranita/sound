@@ -10,7 +10,6 @@ import MulSpeaker1Page from "./pages/MulSpeaker1Page";
 import MulSpeaker2Page from "./pages/MulSpeaker2Page";
 import SpeakerSamplePage from "./pages/SpeakerSamplePage";
 import SpeakerRecognitionPage from "./pages/SpeakerRecognitionPage";
-
 import SpeechPage from "./pages/SpeechPage";
 import RecordListPage from "./pages/RecordListPage";
 import RecordViewPage from "./pages/RecordViewPage";

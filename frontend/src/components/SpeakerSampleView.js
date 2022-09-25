@@ -4,10 +4,8 @@ import  web_link from "../web_link";
 import Header from '../elements/header';
 import {Redirect,  useHistory } from 'react-router-dom';
 import axios from "axios";
-
 let samples = [];
 let context, source, processor;
-
 const SpeakerSampleView = (props) => {
   const [second, setSecond] = useState("00");
   const [minute, setMinute] = useState("00");
@@ -23,12 +21,8 @@ const SpeakerSampleView = (props) => {
   const [blobUrl, isSetBlobUrl] = useState('');
   const [exams, setExams] = useState({});
   const [examName, setExamName] = useState("");
-
-
-
   useEffect(() => {
     let intervalId;
-
     if(window.localStorage.getItem('isLoggedIn')){
       let userData = window.localStorage.getItem('user');
       if(userData){
@@ -80,32 +74,9 @@ const SpeakerSampleView = (props) => {
     if(userData){
         userData = JSON.parse(userData);
     }
-
     let user_id = userData.id
     const pathname = window.location.pathname
     const slug = pathname.split("/").pop();
-
-    /*
-    fetch(web_link+'/api/startexam/'+slug, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            user_id: user_id,
-            exam_id: slug
-        }),
-        })
-        .then((res) => res.json())
-        .then((res) => {
-          setExamName(res[0].exam_name)
-          setExams(res)
-          setStatusVal("success")
-        })
-        .catch((err) => {
-          setStatusVal("fail")
-        })
-        */
     return () => clearInterval(intervalId);
   }, [isActive, counter]);
 
@@ -163,7 +134,6 @@ const SpeakerSampleView = (props) => {
     Stop
   </button>;
   };
-
   const ButtonSubmit = () => {
     return   <button
     style={{
@@ -182,21 +152,17 @@ const SpeakerSampleView = (props) => {
     onClick={() => {
       onFinalSubmitHandler();
     }}
-
     disabled = {submitIsDisabled}
   >
     Submit
   </button>;
   };
-
   function stopTimer() {
     setIsActive(false);
     setCounter(0);
     setSecond("00");
     setMinute("00");
-  }
-
- 
+  } 
   const {
     status,
     startRecording,
@@ -207,7 +173,6 @@ const SpeakerSampleView = (props) => {
     video: false,
     audio: true,
     echoCancellation: true,
-    //mediaRecorderOptions: { mimeType: 'audio/wav' }
   });
 
   const onStartRec = () => {
@@ -216,8 +181,6 @@ const SpeakerSampleView = (props) => {
 
   const onStopRec = () => {
     stopRecording();
-    //processor.onaudioprocess = null;
-    //processor = null;
     submitSetDisabled(false);
   };
 
@@ -227,11 +190,7 @@ const SpeakerSampleView = (props) => {
     if(userData){
         userData = JSON.parse(userData);
     }
-
     let user_id = userData.id;
-    //const pathname = window.location.pathname
-    //const slug = pathname.split("/").pop();
-    
     fetch(mediaBlobUrl)
       .then((res) => res.blob())
       .then((res) => {
@@ -239,7 +198,6 @@ const SpeakerSampleView = (props) => {
         const recordedFile = new File([res], 'voice');
         data.append("file", res);
         data.append("user_id", user_id);
-        //data.append("exam_id", slug);
         let config = {
           header: {
             "Content-Type": "multipart/form-data",
@@ -333,7 +291,6 @@ const SpeakerSampleView = (props) => {
             style={{
               fontSize: "15px",
               fontWeight: "Normal"
-              // marginTop: "20px"
             }}
             htmlFor="icon-button-file"
           >

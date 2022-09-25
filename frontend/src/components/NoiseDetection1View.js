@@ -4,10 +4,8 @@ import  web_link from "../web_link";
 import axios from "axios";
 import Header from '../elements/header';
 
-
 let samples = [];
 let context, source, processor;
-
 const RecordView = (props) => {
   const [second, setSecond] = useState("00");
   const [minute, setMinute] = useState("00");
@@ -103,7 +101,6 @@ const RecordView = (props) => {
     }}
     onClick={() => {
       pauseRecording();
-      //stopRecording();
       onStopRec();
       setIsActive(!isActive);
     }}
@@ -160,20 +157,15 @@ const RecordView = (props) => {
                 out.push(val);
                 }
                 samples = samples.slice(48000);
-                //fetch(web_link+'/api/rctVAD', {
-                //fetch(web_link+'/api/speechVAD', {
                 fetch(web_link+'/api/noisedetection', {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    //'Access-Control-Allow-Origin': 'http://localhost:8000',
-                    //'Access-Control-Allow-Credentials': 'true'
                 },
                 body: JSON.stringify({
                     data: out,
                 }),
                 })
-                //.then((res) => res.json())
                 .then((res) => res.json())
                 .then((res) => setResult(res))
                 .catch((err) => console.log(err))
@@ -209,8 +201,6 @@ const RecordView = (props) => {
         backgroundColor: "black",
         width: "100%",
         height: "700px"
-        //width: "1100px",
-        //height: "700px"
       }}
     >
       <div
@@ -268,7 +258,6 @@ const RecordView = (props) => {
             style={{
               fontSize: "15px",
               fontWeight: "Normal"
-              // marginTop: "20px"
             }}
             htmlFor="icon-button-file"
           >

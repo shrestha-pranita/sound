@@ -3,26 +3,20 @@ import React, { useEffect, useState } from "react";
 import  web_link from "../web_link";
 import axios from "axios";
 import Header from '../elements/header';
-
-
 let samples = [];
 let context, source, processor;
-
 const RecordView = (props) => {
   const [second, setSecond] = useState("00");
   const [minute, setMinute] = useState("00");
   const [isActive, setIsActive] = useState(false);
   const [counter, setCounter] = useState(0);
   const [result, setResult] = useState({});
-
   useEffect(() => {
     let intervalId;
-
     if (isActive) {
       intervalId = setInterval(() => {
         const secondCounter = counter % 60;
         const minuteCounter = Math.floor(counter / 60);
-
         let computedSecond =
           String(secondCounter).length === 1
             ? `0${secondCounter}`
@@ -31,21 +25,18 @@ const RecordView = (props) => {
           String(minuteCounter).length === 1
             ? `0${minuteCounter}`
             : minuteCounter;
-
         setSecond(computedSecond);
         setMinute(computedMinute);
 
         setCounter((counter) => counter + 1);
       }, 650);
     }
-
     try {
         navigator.mediaDevices
           .getUserMedia({
             audio: { sampleRate: 48000, sampleSize: 16, channelCount: 1 },
           })
           .then((stream) => {
-            //localMic = stream;
             context = new AudioContext();
             source = context.createMediaStreamSource(stream);
           })
@@ -104,7 +95,6 @@ const RecordView = (props) => {
     }}
     onClick={() => {
       pauseRecording();
-      //stopRecording();
       onStopRec();
       setIsActive(!isActive);
     }}
@@ -119,8 +109,6 @@ const RecordView = (props) => {
     setSecond("00");
     setMinute("00");
   }
-
-
   const {
     status,
     startRecording,
@@ -132,20 +120,6 @@ const RecordView = (props) => {
     audio: true,
     echoCancellation: true
   });
-  /*
-  const convertFileToBase64 = (file) =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file.mediaBlobUrl);
-
-      reader.onload = () =>
-        resolve({
-          fileName: file.title,
-          base64: reader.result
-        });
-      reader.onerror = reject;
-    });
-    */
     const predictSwitch = () => {
             processor = context.createScriptProcessor(16384, 1, 1);
             source.connect(processor);
@@ -161,20 +135,15 @@ const RecordView = (props) => {
                 out.push(val);
                 }
                 samples = samples.slice(48000);
-                //fetch(web_link+'/api/rctVAD', {
-                //fetch(web_link+'/api/speechVAD', {
                 fetch(web_link+'/api/sileroVAD', {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    //'Access-Control-Allow-Origin': 'http://localhost:8000',
-                    //'Access-Control-Allow-Credentials': 'true'
                 },
                 body: JSON.stringify({
                     data: out,
                 }),
-                })
-                //.then((res) => res.json())
+                })      
                 .then((res) => res.json())
                 .then((res) => setResult(res))
                 .catch((err) => console.log(err))
@@ -215,8 +184,6 @@ const RecordView = (props) => {
         backgroundColor: "black",
         width: "100%",
         height: "700px"
-        //width: "1100px",
-        //height: "700px"
       }}
     >
       <div
@@ -274,7 +241,6 @@ const RecordView = (props) => {
             style={{
               fontSize: "15px",
               fontWeight: "Normal"
-              // marginTop: "20px"
             }}
             htmlFor="icon-button-file"
           >

@@ -1,5 +1,4 @@
 import React from "react";
-//import  web_link from "../web_link";
 import  web_link from "../web_link";
 
 function App() {
@@ -12,8 +11,7 @@ function App() {
                 ["This is some important text"],
                 { type: "text/plain" }
             );
-  
-        // Creating a new blob  
+          // Creating a new blob  
         // Hostname and port of the local server
         fetch(web_link+'/api/test', {
   
@@ -29,40 +27,8 @@ function App() {
         })
         .then(response => alert('Blob Uploaded'))
         .catch(err => alert(err));
-      /*
-      fetch(web_link+'/api/test', {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            //'Access-Control-Allow-Origin': 'http://localhost:8000',
-            //'Access-Control-Allow-Credentials': 'true'
-        },
-        body: JSON.stringify({
-            data: [{"test":"test"}],
-        }),
-    })
-    */
-      //console.log("Here")
-      //const res = await fetch(`${web_link}/api/test`);
-      //console.log(res)
-      //try {
-        //const res = await fetch(`${web_link}/api/test`);
-        
-        //if (!res.ok) {
-          //throw new Error("tst");
-        //}
-        //const data = await res.json();
-        //console.log(data)
-        //console.log("what")
-
-      //} catch (err) {
-       // console.log("error");
-      //}
+    
     }
-
-
-  
-
     return (
       <div className="card">
         <div className="card-header">React Fetch GET - BezKoder.com</div>

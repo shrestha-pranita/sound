@@ -6,15 +6,9 @@ import {Redirect, withRouter} from 'react-router-dom';
 import Header from '../elements/header';
 
 const Mp3Recorder = new MicRecorder({ bitRate: 128 });
-
 class Audio extends Component {
   constructor(props) {
-    super(props);
-
-    /*
-     * declare states that will enable and disable
-     * buttons that controls the audio widget
-     */
+    super(props);  
     this.state = {
         isRecording: false,
         blobURL: '',
@@ -23,11 +17,6 @@ class Audio extends Component {
         audioFile : '',
         blobFile: '',
       }
-    //const [blobURL, setBlobUrl] = useState(null)
-    //const [audioFile, setAudioFile] = useState(null)
-    //const [isRecording, setIsRecording] = useState(null)
-
-    //binds the methods to the component
     this.start = this.start.bind(this);
     this.stop = this.stop.bind(this);
     this.reset = this.reset.bind(this);
@@ -42,7 +31,6 @@ class Audio extends Component {
       navigator.mozGetUserMedia ||
       navigator.msGetUserMedia
      );
-
      //Detects the action on user click to allow or deny permission of audio device
      navigator.getUserMedia({ audio: true },
       () => {
@@ -54,14 +42,8 @@ class Audio extends Component {
         this.setState({ isBlocked: true })
       },
     );
-  }
- 
+  } 
   start(){
-    /*
-     * If the user denys permission to use the audio device
-     * in the browser no recording can be done and an alert is shown
-     * If the user allows permission the recoding will begin
-     */
     if (this.state.isBlocked) {
       alert('Permission Denied');
     } else {
@@ -72,13 +54,7 @@ class Audio extends Component {
         }).catch((e) => console.error(e));
     }
   }
-
   stop() {
-     /*
-     * Once the recoding starts the stop button is activated
-     * Click stop once recording as finished
-     * An MP3 is generated for the user to download the audio
-     */
     Mp3Recorder
       .stop()
       .getMp3()
@@ -86,22 +62,6 @@ class Audio extends Component {
         this.state.audioFile = new File([blob], "record.wav");
         const blobURL = URL.createObjectURL(blob)
         this.state.blobFile = blob;
-        //const blobURL = URL.createObjectURL(blob)
-        //var wavfromblob = new File([blob], "record.wav");
-        /*
-        this.state.audioFile = new File([blob], "record.wav");
-        const formData = new FormData()
-        formData.append("file", this.state.audioFile)
-        axios.post(`${web_link}/api/speakerSample`, formData, {
-          headers: {
-            'Content-Type': `multipart/form-data`,
-        },
-
-        })
-        .then(result => {
-          console.log(result)
-        })
-        */
         this.setState({ blobURL, isRecording: false });
 
         this.setState({ isRecordingStp: true });
@@ -110,21 +70,12 @@ class Audio extends Component {
   };
 
   submit() {
-    /*
-    * Once the recoding starts the stop button is activated
-    * Click stop once recording as finished
-    * An MP3 is generated for the user to download the audio
-    */
     Mp3Recorder
     .getMp3()
     .then(() => {
-       //const blobURL = URL.createObjectURL(blob)
-
        var wavfromblob = new File([this.state.blobFile], "record.wav");
-
        const formData = new FormData()
        formData.append("file", wavfromblob)
-
        axios.post(`${web_link}/api/speakerSample`, formData, {
          headers: {
            'Content-Type': `multipart/form-data`,
@@ -139,37 +90,12 @@ class Audio extends Component {
       }).catch((e) => console.log(e));
     };
 
-  /*
-  stop = () => {
-    Mp3Recorder
-      .stop()
-      .getMp3()
-      .then(([buffer, blob]) => {
-        const file = new File([blob], "record.wav", {
-          type: blob.type,
-          lastModified: Date.now(),
-        })
-        const newBlobUrl = URL.createObjectURL(blob)
-        setBlobUrl(newBlobUrl)
-        setIsRecording(false)
-        setAudioFile(file)
-      })
-      .catch((e) => console.log(e))
-  };
-  */
-
   reset() {
-      /*
-       * The user can reset the audio recording
-       * once the stop button is clicked
-       */
       document.getElementsByTagName('audio')[0].src = '';
       this.setState({ isRecordingStp: false });
   };
 
   render() {
-
-    //display view of audio widget and control buttons
     return(
       <div>
         <div id = "wrapper">
@@ -186,5 +112,4 @@ class Audio extends Component {
     );
   }
 }
-
 export default withRouter(Audio);

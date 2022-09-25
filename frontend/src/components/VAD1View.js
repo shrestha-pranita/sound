@@ -4,10 +4,8 @@ import  web_link from "../web_link";
 import Header from '../elements/header';
 import {Redirect,  useHistory } from 'react-router-dom';
 import axios from "axios";
-
 let samples = [];
 let context, source, processor;
-
 const RecordView = (props) => {
   const [second, setSecond] = useState("00");
   const [minute, setMinute] = useState("00");
@@ -23,12 +21,8 @@ const RecordView = (props) => {
   const [blobUrl, isSetBlobUrl] = useState('');
   const [exams, setExams] = useState({});
   const [examName, setExamName] = useState("");
-
-
-
   useEffect(() => {
     let intervalId;
-
     if(window.localStorage.getItem('isLoggedIn')){
       let userData = window.localStorage.getItem('user');
       if(userData){
@@ -39,7 +33,6 @@ const RecordView = (props) => {
     }else {
       history.push("/login");
     }
-
     if (isActive) {
       intervalId = setInterval(() => {
         const secondCounter = counter % 60;
@@ -53,10 +46,8 @@ const RecordView = (props) => {
           String(minuteCounter).length === 1
             ? `0${minuteCounter}`
             : minuteCounter;
-
         setSecond(computedSecond);
         setMinute(computedMinute);
-
         setCounter((counter) => counter + 1);
       }, 650);
     }
@@ -67,7 +58,6 @@ const RecordView = (props) => {
           audio: { sampleRate: 48000, sampleSize: 16, channelCount: 1 },
         })
         .then((stream) => {
-          //localMic = stream;
           context = new AudioContext();
           source = context.createMediaStreamSource(stream);
         })
@@ -84,31 +74,8 @@ const RecordView = (props) => {
     let user_id = userData.id
     const pathname = window.location.pathname
     const slug = pathname.split("/").pop();
-
-    /*
-    fetch(web_link+'/api/startexam/'+slug, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            user_id: user_id,
-            exam_id: slug
-        }),
-        })
-        .then((res) => res.json())
-        .then((res) => {
-          setExamName(res[0].exam_name)
-          setExams(res)
-          setStatusVal("success")
-        })
-        .catch((err) => {
-          setStatusVal("fail")
-        })
-        */
     return () => clearInterval(intervalId);
   }, [isActive, counter]);
-
   const ButtonStart = () => {
     return <button
     style={{
@@ -128,7 +95,6 @@ const RecordView = (props) => {
       if (!isActive) {
         startRecording();
         predictSwitch();
-        //start_audio_recording();
       } else {
         pauseRecording();
       }
@@ -199,27 +165,6 @@ const RecordView = (props) => {
     setSecond("00");
     setMinute("00");
   }
-
-  /*
-  function start_audio_recording() {
-    Mp3Recorder
-      .start()
-      .then(() => {
-        isSetRecording(true)
-      }).catch((e) => console.error(e));
-  }
-
-  function stop_audio_recording() {
-    Mp3Recorder
-    .stop()
-    .getMp3()
-    .then(([buffer, blob]) => {
-      const blobURL = URL.createObjectURL(blob)
-      isSetRecording(false)
-      isSetBlobUrl(blobUrl)
-    }).catch((e) => console.log(e));
-  }
-  */
   const {
     status,
     startRecording,
@@ -230,9 +175,7 @@ const RecordView = (props) => {
     video: false,
     audio: true,
     echoCancellation: true,
-    //mediaRecorderOptions: { mimeType: 'audio/wav' }
   });
-
   const predictSwitch = () => {
     stopSetDisabled(false);
     processor = context.createScriptProcessor(16384, 1, 1);
@@ -254,7 +197,6 @@ const RecordView = (props) => {
         if(userData){
             userData = JSON.parse(userData);
         }
-
         let user_id = userData.id
         fetch(web_link+'/api/sileroVAD', {
           method: "POST",
@@ -272,7 +214,6 @@ const RecordView = (props) => {
         }
       };
     };
-
   const onStopRec = () => {
     stopRecording();
     processor.onaudioprocess = null;
@@ -286,11 +227,9 @@ const RecordView = (props) => {
     if(userData){
         userData = JSON.parse(userData);
     }
-
     let user_id = userData.id;
     const pathname = window.location.pathname
-    const slug = pathname.split("/").pop();
-    
+    const slug = pathname.split("/").pop();    
     fetch(mediaBlobUrl)
       .then((res) => res.blob())
       .then((res) => {
@@ -317,7 +256,6 @@ const RecordView = (props) => {
       });
     
   };
-
   return (
     <>
     <div id = "wrapper">
@@ -328,7 +266,6 @@ const RecordView = (props) => {
     </h3>
     <h2>
         Cheating Level Alert :{" "}
-
         {result.cheating_level === "high" ? (
           <span style={{ color: "Red" }}>High</span>
         ) : (

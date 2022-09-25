@@ -13,15 +13,12 @@ const RecordView = (props) => {
   const [isActive, setIsActive] = useState(false);
   const [counter, setCounter] = useState(0);
   const [result, setResult] = useState({});
-
   useEffect(() => {
     let intervalId;
-
     if (isActive) {
       intervalId = setInterval(() => {
         const secondCounter = counter % 60;
         const minuteCounter = Math.floor(counter / 60);
-
         let computedSecond =
           String(secondCounter).length === 1
             ? `0${secondCounter}`
@@ -30,14 +27,12 @@ const RecordView = (props) => {
           String(minuteCounter).length === 1
             ? `0${minuteCounter}`
             : minuteCounter;
-
         setSecond(computedSecond);
         setMinute(computedMinute);
 
         setCounter((counter) => counter + 1);
       }, 650);
     }
-
     try {
         navigator.mediaDevices
           .getUserMedia({
@@ -130,21 +125,6 @@ const RecordView = (props) => {
     audio: true,
     echoCancellation: true
   });
-
-  /*
-  const convertFileToBase64 = (file) =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file.mediaBlobUrl);
-
-      reader.onload = () =>
-        resolve({
-          fileName: file.title,
-          base64: reader.result
-        });
-      reader.onerror = reject;
-    });
-    */
     const predictSwitch = () => {
             processor = context.createScriptProcessor(16384, 1, 1);
             source.connect(processor);
@@ -166,34 +146,27 @@ const RecordView = (props) => {
                 }
         
                 let user_id = userData.id
-                //fetch(web_link+'/api/rctVAD', {
                 fetch(web_link+'/api/speechVAD', {
-                //fetch(web_link+'/api/sileroVAD', {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    //'Access-Control-Allow-Origin': 'http://localhost:8000',
-                    //'Access-Control-Allow-Credentials': 'true'
                 },
                 body: JSON.stringify({
                     data: out,
                     user_id: user_id
                 }),
                 })
-                //.then((res) => res.json())
                 .then((res) => res.json())
                 .then((res) => setResult(res))
                 .catch((err) => console.log(err))
             }
             };
         };
-
     const onStopRec = () => {
         stopRecording();
         processor.onaudioprocess = null;
         processor = null;
         };
-
   return (
     <>
     <div id = "wrapper">
@@ -222,8 +195,6 @@ const RecordView = (props) => {
         backgroundColor: "black",
         width: "100%",
         height: "700px"
-        //width: "1100px",
-        //height: "700px"
       }}
     >
       <div
@@ -288,7 +259,6 @@ const RecordView = (props) => {
             <h3 style={{ marginLeft: "15px", fontWeight: "normal" }}>
               Press the Start to record
             </h3>
-
             <div>
               <ButtonStart/>
               <ButtonStop/>
