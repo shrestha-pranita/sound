@@ -16,7 +16,7 @@ const RecordView = (props) => {
   useEffect(() => {
     let intervalId;
     if (window.localStorage.getItem('isLoggedIn')) {
-      let userData = window.localStorage.getItem('user');
+   
     } else {
       this.props.history.push('/login');
       return <Redirect to="/login" />;

@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { Link, Redirect } from 'react-router-dom';
-import axios from 'axios';
 import  web_link from "../web_link";
 import Header from '../elements/header';
 
@@ -16,11 +15,9 @@ export default class RecordListView extends Component {
   }
 
   componentDidMount() {
-    const currentURL = window.location.href 
     const pathname = window.location.pathname
     console.log(pathname)
-    if (window.localStorage.getItem('isLoggedIn')) {
-      let userData = window.localStorage.getItem('user');
+    if (window.localStorage.getItem('isLoggedIn')) { 
     } else {
       this.props.history.push('/login');
       return <Redirect to="/login" />;
@@ -29,7 +26,7 @@ export default class RecordListView extends Component {
       if ('is_active' in localStorage && 'contract_signed' in localStorage) {
         let active = localStorage.getItem('is_active');
         let contract = localStorage.getItem('contract_signed');
-        if (active == 1 && contract == 1) {
+        if (active === 1 && contract === 1) {
             console.log('')
         } else {
           this.props.history.push('/login');
@@ -86,7 +83,7 @@ export default class RecordListView extends Component {
             <h4 className="text-2xl my-2">Recording List</h4>
             <hr />
 
-            {status_val == "success" ? (
+            {status_val === "success" ? (
             <table className="table table-striped">
             <thead>
               <tr>
@@ -127,7 +124,7 @@ export default class RecordListView extends Component {
             </tbody>
           </table>
           ) : null}
-          {status_val == "fail"? (
+          {status_val === "fail"? (
             <div className="font-weight-bold">
               No recordings exist! Please contact the administrator.
             </div>

@@ -19,6 +19,14 @@ class ExamViewSet(viewsets.ModelViewSet):
         return ExamSerializer
 
     def list(self, request, *args, **kwargs):
+
+        """
+        list function fetches the model of 
+
+
+
+
+        """
         exams = Exam.objects.all()
         serializer = ExamSerializer(exams, many=True)
         oi_dict = model_to_dict(serializer)

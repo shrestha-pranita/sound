@@ -322,7 +322,7 @@ def speechCheck(request):
                                     else:
                                         end.append(value)
                                 
-                        print(speech_dict)
+                        
                         text_file_name = os.path.splitext(filename)[0]
                         f = open(filepath + "/" + text_file_name + ".txt", "a")
                         for i in range(0, len(start)):

@@ -165,12 +165,11 @@ def recordingViews(request, record_id):
 @api_view(['GET', 'POST'])
 def userRecordingViews(request, record_id):
     """
-    userrecording  function fetches the list of record of users from database
+    userrecording:  function fetches the list of record of users from database
     :param request: contains request data sent from frontend
     param record_id: contains record id sent from frontend
     :return: list of recording
     """ 
-
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     if request.method == "POST":
         user_id = request.data['user_id']
@@ -228,8 +227,6 @@ def admin_analyze(request, exam_id):
     :param request: contains request data sent from frontend
     :param exam_id: fetching user_id from frontend
     :return: return staus
-
-
     """
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     if request.method == "POST":
