@@ -16,7 +16,6 @@ export default class AdminRecordView extends Component {
       records: [],
     };
   }
-  
   componentDidMount() {
     if (window.localStorage.getItem("isLoggedIn")) {
       let userData = window.localStorage.getItem("user");

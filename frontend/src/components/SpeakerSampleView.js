@@ -2,25 +2,17 @@ import { useReactMediaRecorder } from "react-media-recorder";
 import React, { useEffect, useState } from "react";
 import  web_link from "../web_link";
 import Header from '../elements/header';
-import {Redirect,  useHistory } from 'react-router-dom';
+import {useHistory } from 'react-router-dom';
 import axios from "axios";
-let samples = [];
-let context, source, processor;
+let context, source;
 const SpeakerSampleView = (props) => {
   const [second, setSecond] = useState("00");
   const [minute, setMinute] = useState("00");
   const [isActive, setIsActive] = useState(false);
   const [counter, setCounter] = useState(0);
-  const [result, setResult] = useState({});
   const history = useHistory();
   const [stopIsDisabled, stopSetDisabled] = useState(true);
   const [submitIsDisabled, submitSetDisabled] = useState(true);
-  const [status_val, setStatusVal] = useState("success");
-  const [isRecording, isSetRecording] = useState(false);
-  const [isBlocked, isSetBlocked] = useState(false);
-  const [blobUrl, isSetBlobUrl] = useState('');
-  const [exams, setExams] = useState({});
-  const [examName, setExamName] = useState("");
   useEffect(() => {
     let intervalId;
     if(window.localStorage.getItem('isLoggedIn')){
@@ -74,9 +66,6 @@ const SpeakerSampleView = (props) => {
     if(userData){
         userData = JSON.parse(userData);
     }
-    let user_id = userData.id
-    const pathname = window.location.pathname
-    const slug = pathname.split("/").pop();
     return () => clearInterval(intervalId);
   }, [isActive, counter]);
 
@@ -195,7 +184,6 @@ const SpeakerSampleView = (props) => {
       .then((res) => res.blob())
       .then((res) => {
         let data = new FormData();
-        const recordedFile = new File([res], 'voice');
         data.append("file", res);
         data.append("user_id", user_id);
         let config = {

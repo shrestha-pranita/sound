@@ -22,7 +22,7 @@ export default class AdminRecordListView extends React.Component {
   }
   componentDidMount() {
     if (window.localStorage.getItem("isLoggedIn")) {
-      let userData = window.localStorage.getItem("user");
+      
     } else {
       this.props.history.push("/login");
       return <Redirect to="/login" />;
@@ -121,7 +121,7 @@ export default class AdminRecordListView extends React.Component {
   };
 
   render() {
-    const { status_val, records, exams, analyzeIsDisabled, users } = this.state;
+    const { status_val, records, exams, analyzeIsDisabled } = this.state;
     return (
       <div>
         <Header />

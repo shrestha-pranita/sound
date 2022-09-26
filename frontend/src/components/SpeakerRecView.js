@@ -1,10 +1,10 @@
 import { useReactMediaRecorder } from "react-media-recorder";
 import React, { useEffect, useState } from "react";
 import  web_link from "../web_link";
-import axios from "axios";
+
 import Header from '../elements/header';
 let samples = [];
-let localMic, context, source, processor;
+let  context, source, processor, localMic;
 const SpeakerRecView = (props) => {
   const [second, setSecond] = useState("00");
   const [minute, setMinute] = useState("00");
