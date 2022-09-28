@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import Select from "react-select";
 import { Link, Redirect } from "react-router-dom";
 import axios from "axios";
 import web_link from "../web_link";
@@ -10,7 +11,7 @@ export default class AdminExamListView extends Component {
 
     this.state = {
       status_val: "",
-      exams: {},
+      exams: [],
     };
   }
 
@@ -59,6 +60,52 @@ export default class AdminExamListView extends Component {
         });
       });
   }
+  // create exam
+  createNewExam = (exam) => {
+    fetch(web_link + "/api/admin_exam_create/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(exam),
+    })
+      .then((response) => response.json())
+      .then((exam) => {
+        this.setState({ exams: this.state.exams.concat([exam]) });
+      });
+  };
+  updateExam = (newExam) => {
+    fetch(web_link + `/api/exam/${newExam.id}/`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newExam),
+    })
+      .then((response) => response.json())
+      .then((newExam) => {
+        const newExams = this.state.exams.map((exam) => {
+          if (exam.id === newExam.id) {
+            return Object.assign({}, newExam);
+          } else {
+            return exam;
+          }
+        });
+        this.setState({ exams: newExams });
+      });
+  };
+  deleteExam = (examId) => {
+    fetch(web_link + `/api/exam/${examId}/`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }).then(() => {
+      this.setState({
+        exams: this.state.exams.filter((exam) => exam.id !== examId),
+      });
+    });
+  };
 
   render() {
     const { status_val, exams } = this.state;
@@ -67,8 +114,9 @@ export default class AdminExamListView extends Component {
         <Header />
         <div id="wrapper">
           <div className="container h-100">
-            <h4 className="text-2xl my-2">Recording List</h4>
+            <h4 className="text-2xl my-2">Exam List</h4>
             <hr />
+            <ToggleableExamForm onExamCreate={this.createNewExam} />
 
             {status_val === "success" ? (
               <table className="table table-striped">
@@ -117,6 +165,219 @@ export default class AdminExamListView extends Component {
               </div>
             ) : null}
           </div>
+        </div>
+      </div>
+    );
+  }
+}
+class ToggleableExamForm extends React.Component {
+  state = {
+    inCreateMode: false,
+  };
+  handleCreateClick = () => {
+    this.setState({ inCreateMode: true });
+  };
+  leaveCreateMode = () => {
+    this.setState({ inCreateMode: false });
+  };
+  handleCancleClick = () => {
+    this.leaveCreateMode();
+  };
+  handleFormSubmit = (exam) => {
+    this.leaveCreateMode();
+    this.props.onExamCreate(exam);
+  };
+  render() {
+    if (this.state.inCreateMode) {
+      return (
+        <div className="mb-3 p-4" style={{ boxShadow: "0 0 10px #ccc" }}>
+          <ExamForm
+            onFormSubmit={this.handleFormSubmit}
+            onCancelClick={this.handleCancleClick}
+          ></ExamForm>
+        </div>
+      );
+    }
+    return (
+      <button onClick={this.handleCreateClick} className="btn btn-secondary">
+        <i className="fas fa-plus"></i>
+      </button>
+    );
+  }
+}
+class ExamForm extends React.Component {
+  state = {
+    exam_name: this.props.exam_name || "",
+    status: this.props.status || "",
+    analyze: this.props.analyze || "",
+  };
+
+  handleFormSubmit = (evt) => {
+    evt.preventDefault();
+    this.props.onFormSubmit({ ...this.state });
+  };
+  handleExamNameUpdate = (evt) => {
+    this.setState({ exam_name: evt.target.value });
+  };
+  handleStatusUpdate = (evt) => {
+    this.setState({ status: evt.target.value });
+  };
+  handleAnalyzeUpdate = (evt) => {
+    this.setState({ analyze: evt.target.value });
+  };
+
+  render() {
+    const buttonText = this.props.id ? "Update Exam" : "Create Exam";
+    const options_status = [
+      { value: 1, label: "Active" },
+      { value: 0, label: "Inactive" },
+    ];
+    const options_analyze = [
+      { value: 1, label: "Yes" },
+      { value: 0, label: "No" },
+    ];
+
+    return (
+      <form onSubmit={this.handleFormSubmit}>
+        <div className="form-group">
+          <label>Exam Name</label>
+          <input
+            type="text"
+            placeholder="Enter Exam name"
+            value={this.state.exam_name}
+            onChange={this.handleExamNameUpdate}
+            className="form-control"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Status</label>
+          {/* <input
+            type="text"
+            placeholder="Author's name"
+            value={this.state.author}
+            onChange={this.handleAuthorUpdate}
+            className="form-control"
+          /> */}
+          {/* <Select options={options_status} onChange={this.handleStatusUpdate} /> */}
+          <select onChange={this.handleStatusUpdate} className="form-control">
+            <option value={1}>Active</option>
+            <option value={0}>Inactive</option>
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>Analyze</label>
+          {/* <textarea
+            className="form-control"
+            placeholder="Book Description"
+            rows="5"
+            value={this.state.description}
+            onChange={this.handleDescriptionUpdate}
+          >
+            {this.state.description}
+          </textarea> */}
+          {/* <Select
+            options={options_analyze}
+            onChange={this.handleAnalyzeUpdate}
+          /> */}
+          <select onChange={this.handleStatusUpdate} className="form-control">
+            <option value={1}>Yes</option>
+            <option value={0}>No</option>
+          </select>
+        </div>
+
+        <div className="form-group d-flex justify-content-between">
+          <button type="submit" className="btn btn-md btn-primary">
+            {buttonText}
+          </button>
+          <button
+            type="button"
+            className="btn btn-md btn-secondary"
+            onClick={this.props.onCancelClick}
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    );
+  }
+}
+
+class EditableExam extends React.Component {
+  state = {
+    inEditMode: false,
+  };
+
+  enterEditMode = () => {
+    this.setState({ inEditMode: true });
+  };
+
+  leaveEditMode = () => {
+    this.setState({ inEditMode: false });
+  };
+  handleDelete = () => {
+    this.props.onDeleteClick(this.props.id);
+  };
+  handleUpdate = (exam) => {
+    this.leaveEditMode();
+    exam.id = this.props.id;
+    this.props.onUpdateClick(exam);
+  };
+
+  render() {
+    const component = () => {
+      if (this.state.inEditMode) {
+        return (
+          <ExamForm
+            id={this.props.id}
+            exam_name={this.props.exam_name}
+            status={this.props.status}
+            analyze={this.props.analyze}
+            onCancelClick={this.leaveEditMode}
+            onFormSubmit={this.handleUpdate}
+          />
+        );
+      }
+      return (
+        <Exam
+          exam_name={this.props.exam_name}
+          status={this.props.status}
+          analyze={this.props.analyze}
+          onEditClick={this.enterEditMode}
+          onDeleteClick={this.handleDelete}
+        />
+      );
+    };
+    return (
+      <div className="mb-3 p-4" style={{ boxShadow: "0 0 10px #ccc" }}>
+        {component()}
+      </div>
+    );
+  }
+}
+
+class Exam extends React.Component {
+  render() {
+    return (
+      <div className="card" /* style="width: 18rem;" */>
+        <div className="card-header d-flex justify-content-between">
+          <span>
+            <strong>Exam Name: </strong>
+            {this.props.exam_name}
+          </span>
+          <div>
+            <span onClick={this.props.onEditClick} className="mr-2">
+              <i className="far fa-edit"></i>
+            </span>
+            <span onClick={this.props.onDeleteClick}>
+              <i className="fas fa-trash"></i>
+            </span>
+          </div>
+        </div>
+        <div className="card-body">{this.props.analyze}</div>
+        <div className="card-footer">
+          <strong>Status:</strong> {this.props.status}
         </div>
       </div>
     );
