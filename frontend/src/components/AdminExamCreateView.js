@@ -4,6 +4,9 @@ import { Link, Redirect } from "react-router-dom";
 import axios from "axios";
 import web_link from "../web_link";
 import Header from "../elements/header";
+import {useHistory, Route , withRouter, useNavigate  } from 'react-router-dom';
+
+
 export default class AdminExamListView extends Component {
   constructor(props) {
     super(props);
@@ -62,17 +65,21 @@ export default class AdminExamListView extends Component {
   }
   // create exam
   createNewExam = (exam) => {
-    fetch(web_link + "/api/admin_exam_create/", {
+    fetch(web_link + "/api/admin_exam_create", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(exam),
+      body: JSON.stringify({
+        data: exam,
+      }),
     })
       .then((response) => response.json())
-      .then((exam) => {
-        this.setState({ exams: this.state.exams.concat([exam]) });
-      });
+      .then((response) => {
+        console.log("whatttttt")
+        window.location.reload(false);
+        //this.props.history.push("/admin_exam_create");
+      })
   };
   updateExam = (newExam) => {
     fetch(web_link + `/api/exam/${newExam.id}/`, {
@@ -184,6 +191,7 @@ class ToggleableExamForm extends React.Component {
     this.leaveCreateMode();
   };
   handleFormSubmit = (exam) => {
+    console.log(exam)
     this.leaveCreateMode();
     this.props.onExamCreate(exam);
   };
@@ -208,11 +216,12 @@ class ToggleableExamForm extends React.Component {
 class ExamForm extends React.Component {
   state = {
     exam_name: this.props.exam_name || "",
-    status: this.props.status || "",
-    analyze: this.props.analyze || "",
+    status: this.props.status || 1,
+    analyze: this.props.analyze || 0,
   };
 
   handleFormSubmit = (evt) => {
+    console.log(evt)
     evt.preventDefault();
     this.props.onFormSubmit({ ...this.state });
   };
@@ -220,6 +229,7 @@ class ExamForm extends React.Component {
     this.setState({ exam_name: evt.target.value });
   };
   handleStatusUpdate = (evt) => {
+    console.log(evt.target.value)
     this.setState({ status: evt.target.value });
   };
   handleAnalyzeUpdate = (evt) => {
@@ -260,30 +270,9 @@ class ExamForm extends React.Component {
             className="form-control"
           /> */}
           {/* <Select options={options_status} onChange={this.handleStatusUpdate} /> */}
-          <select onChange={this.handleStatusUpdate} className="form-control">
+          <select onChange={this.handleStatusUpdate} className="form-control" value={1}>
             <option value={1}>Active</option>
             <option value={0}>Inactive</option>
-          </select>
-        </div>
-
-        <div className="form-group">
-          <label>Analyze</label>
-          {/* <textarea
-            className="form-control"
-            placeholder="Book Description"
-            rows="5"
-            value={this.state.description}
-            onChange={this.handleDescriptionUpdate}
-          >
-            {this.state.description}
-          </textarea> */}
-          {/* <Select
-            options={options_analyze}
-            onChange={this.handleAnalyzeUpdate}
-          /> */}
-          <select onChange={this.handleStatusUpdate} className="form-control">
-            <option value={1}>Yes</option>
-            <option value={0}>No</option>
           </select>
         </div>
 
@@ -383,3 +372,4 @@ class Exam extends React.Component {
     );
   }
 }
+

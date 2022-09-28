@@ -27,6 +27,7 @@ from collections import defaultdict
 import librosa
 import io
 import soundfile
+from datetime import datetime
 
 @api_view(['GET', 'POST', 'DELETE'])
 def admin_exam_list(request):
@@ -308,13 +309,15 @@ def admin_exam_create(request):
 
     if request.method == 'POST':
       
-        try:
-            user_id = request.data['user_id']  
-            exam_id = request.data['exam_id']   
-            exams = Exam.objects.filter(id__in = exam_id).filter(status__exact=1)  
-            exam_serializer = ExamSerializer(exams, many=True)  
+        try:  
+            exams = request.data["data"]
+            store = Exam(exam_name = exams["exam_name"], status = exams["status"], created_at = datetime.now(), last_modified_at = datetime.now())
+            store.save()
+            #exams = Exam.objects.filter(id__in = exam_id).filter(status__exact=1)  
+            #exam_serializer = ExamSerializer(exams, many=True)  
         
-            return JsonResponse(exam_serializer.data, safe=False)  
+            response = JsonResponse({'status': 'success'}, status=status.HTTP_200_OK)
+            return response
         except:
             return JsonResponse({'message': 'Exam details not available'})
 
