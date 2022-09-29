@@ -3,10 +3,11 @@ from django.http import JsonResponse
 from rest_framework.parsers import JSONParser 
 from rest_framework import status, response
 from users.models import User
-from users.serializers import UserSerializer , LoginSerializer ,RegistrationSerializer
+from users.serializers import UserSerializer , LoginSerializer ,RegistrationSerializer,PasswordSerializer
 from django.contrib.auth.hashers import check_password
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
+from rest_framework.generics import get_object_or_404
 import jwt
 from rest_framework.authtoken.models import Token
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -26,7 +27,6 @@ def login(request):
     """
     data=request.data
     serializers=LoginSerializer(data=data)
-    print(serializers)
     if serializers.is_valid():
         user = authenticate(request, username=data['username'], password=data['password'])
         if user is not None:
@@ -135,3 +135,35 @@ def get_detail(request):
         'username': request.user.username,
         'email': request.user.email
     })
+
+
+
+@api_view(['GET','POST'])
+def get_object(self, username):
+    user = get_object_or_404(User, username=username)
+    return user
+
+
+
+@api_view(['put'])
+def forgetpassword(request):
+    serializer = PasswordSerializer(data=request.data)
+    if serializer.is_valid():
+        username = serializer.data['username']
+        try: 
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return JsonResponse({"username": ["User with this username does not exist."]}, status=status.HTTP_400_BAD_REQUEST)
+        new_password = serializer.data['password']
+        is_same_as_old = user.check_password(new_password)
+        if is_same_as_old:
+                """
+                old password and new passwords should not be the same
+                """
+                return JsonResponse({"password": ["It should be different from your last password."]},
+                                status=status.HTTP_400_BAD_REQUEST)
+        user.set_password(new_password)
+        user.save()
+        return JsonResponse({'success':True})
+    return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
+        
