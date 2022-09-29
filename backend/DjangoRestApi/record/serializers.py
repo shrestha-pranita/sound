@@ -16,7 +16,6 @@ class ExamSerializer(serializers.ModelSerializer):
         fields = ('id', 'exams')
 
 class RecordingSerializer(serializers.ModelSerializer):
- 
     class Meta:
         model = Recording
         fields = ('id',

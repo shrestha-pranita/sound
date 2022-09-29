@@ -27,6 +27,7 @@ from collections import defaultdict
 import librosa
 import io
 import soundfile
+from datetime import datetime
 
 @api_view(['GET', 'POST', 'DELETE'])
 def admin_exam_list(request):
@@ -38,7 +39,6 @@ def admin_exam_list(request):
     if request.method == 'GET':
         try:
             exams = Exam.objects.filter(status=1)
-            print(exams)
             exam_serializer = ExamSerializer(exams, many=True)
             return JsonResponse(exam_serializer.data, safe=False)
         except: 
@@ -48,10 +48,10 @@ def admin_exam_list(request):
 @api_view(['GET', 'POST', 'DELETE'])
 def admin_record_list(request, exam_id):
     """
-    admin_record_list function fetches the list of record from database
+    admin_record_list function fetches the list of recordings from database
     :param request: contains request data sent from frontend
-    param exam_id: contrains exam id sent from frontend
-    :return: list of records details
+    :param exam_id: contains exam_id of the paricular exam sent from the frontend
+    :return: list of recordings details
     """  
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
     if request.method == "POST":
@@ -92,7 +92,6 @@ def dissect_speech(audio_path, RATE, model):
     
     vad_iterator.reset_states() 
     model.reset_states()
-    print(start)
     return start, end
 
 
@@ -108,7 +107,7 @@ def recordingViews(request, record_id):
     """
     recording  function fetches the list of record from database
     :param request: contains request data sent from frontend
-    param record_id: contains record id sent from frontend
+    :param record_id: contains record id sent from frontend
     :return: list of recording
     """  
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
@@ -123,23 +122,18 @@ def recordingViews(request, record_id):
             folder_name = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + recording_data[0]["folder_name"]
             text_folder_name = filepath + settings.MEDIA_URL+ "user_audio/exam_"+ str(recording_data[0]["exam_id"]) + "/txt_file"
             audio_folder_name = recording_data[0]["folder_name"] 
-            print(audio_folder_name)
             data = []
             index = 0
             text_file_name = os.path.basename(recording_data[0]["folder_name"]) + ".txt"
-            print(text_file_name)
             text_file = os.path.basename(recording_data[0]["folder_name"]) + ".txt"
             time_detail = []
-            print(filepath + "/" + text_folder_name + "/" + text_file_name)
 
             with open(text_folder_name + "/" + text_file_name) as f:
                 lines = f.readlines()[1:]
-                print(lines)
                 for i in range(0, len(lines)):
                     text_list = defaultdict(list)
                     x = lines[i].split(",")
                     hours, minutes, seconds = convert(x[0])
-                    print("{}:{}:{}".format(hours, minutes, seconds))
                     text_list["start"].append(str("{}:{}:{}".format(hours, minutes, seconds)))
 
                     hours, minutes, seconds = convert(x[1])
@@ -182,23 +176,18 @@ def userRecordingViews(request, record_id):
             folder_name = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + recording_data[0]["folder_name"]
             text_folder_name = filepath + settings.MEDIA_URL+ "user_audio/exam_"+ str(recording_data[0]["exam_id"]) + "/txt_file"
             audio_folder_name = recording_data[0]["folder_name"] 
-            print(audio_folder_name)
             data = []
             index = 0
             text_file_name = os.path.basename(recording_data[0]["folder_name"]) + ".txt"
-            print(text_file_name)
             text_file = os.path.basename(recording_data[0]["folder_name"]) + ".txt"
             time_detail = []
-            print(filepath + "/" + text_folder_name + "/" + text_file_name)
 
             with open(text_folder_name + "/" + text_file_name) as f:
                 lines = f.readlines()[1:]
-                print(lines)
                 for i in range(0, len(lines)):
                     text_list = defaultdict(list)
                     x = lines[i].split(",")
                     hours, minutes, seconds = convert(x[0])
-                    print("{}:{}:{}".format(hours, minutes, seconds))
                     text_list["start"].append(str("{}:{}:{}".format(hours, minutes, seconds)))
 
                     hours, minutes, seconds = convert(x[1])
@@ -225,7 +214,7 @@ def admin_analyze(request, exam_id):
     """
     admin_analyze function fetched the admin 
     :param request: contains request data sent from frontend
-    :param exam_id: fetching user_id from frontend
+    :param exam_id: contains exam_id of the paricular exam sent from the frontend
     :return: return staus
     """
     response = JsonResponse({'status': 'fail', 'description': 'no audio data detected!!'}, status=status.HTTP_204_NO_CONTENT)
@@ -288,26 +277,49 @@ def admin_analyze(request, exam_id):
             return JsonResponse({'status': 'success'}, status=status.HTTP_200_OK)
         except: 
             return JsonResponse({'data': 'fail'}, status=status.HTTP_204_NO_CONTENT)
+    return response
 
 @api_view(['GET', 'POST'])
 def exam_detail(request, exam_id):
     """
-    exam_details function fetched the details of exam from database
+    exam_detail function fetches the detaisl about particular exam
     :param request: contains request data sent from frontend
-    :param exam_id: fetching user_id from frontend
-    :return: return the message if there is no exam active
-
-
+    :param exam_id: contains exam_id of the paricular exam sent from the frontend
+    :return: return exam details of the particular exam
     """
+    response = JsonResponse({'status': 'fail'}, status=status.HTTP_404_NOT_FOUND)
     if request.method == 'POST':
         try:
-            user_id = request.data['user_id']
             exam_id = request.data['exam_id']
             exams = Exam.objects.filter(id__in = exam_id).filter(status__exact=1)
-            print(exams)
             exam_serializer = ExamSerializer(exams, many=True)
-            print(exam_serializer)
             return JsonResponse(exam_serializer.data, safe=False)
         except:
             return JsonResponse({'message': 'Exam details not available'})
+    return response
+
+@api_view(['GET', 'POST'])
+def admin_exam_create(request):
+    """
+    exam_create function creates the new exam
+    :param request: contains form data about exam from the frontend
+    :return: return the message of successful creation of exam or not
+    """
+    response = JsonResponse({'status': 'fail'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'POST':
+      
+        try:  
+            exams = request.data["data"]
+            store = Exam(exam_name = exams["exam_name"], status = exams["status"], created_at = datetime.now(), last_modified_at = datetime.now())
+            store.save()
+            #exams = Exam.objects.filter(id__in = exam_id).filter(status__exact=1)  
+            #exam_serializer = ExamSerializer(exams, many=True)  
+        
+            response = JsonResponse({'status': 'success'}, status=status.HTTP_200_OK)
+            return response
+        except:
+            return JsonResponse({'message': 'Exam details not available'})
+
+    return response
 

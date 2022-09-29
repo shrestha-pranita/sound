@@ -37,8 +37,8 @@ import scipy.io.wavfile
 from rct.nnet.CRNN import CRNN
 import os
 from speechbrain.pretrained import SpeakerRecognition
-from .vad1 import predict_mul
-from .vad import predict_speech
+# from .vad1 import predict_mul
+# from .vad import predict_speech
 import pandas as pd
 from fastapi import FastAPI, UploadFile
 from rct.predict import load_model

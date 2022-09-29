@@ -17,6 +17,7 @@ import RecordViewPage from "./pages/RecordViewPage";
 import AdminExamListPage from "./pages/AdminExamListPage";
 import AdminRecordListPage from "./pages/AdminRecordListPage";
 import AdminRecordViewPage from "./pages/AdminRecordViewPage";
+import AdminExamCreatePage from "./pages/AdminExamCreatePage";
 class App extends Component {
     render() {
         return (            
@@ -43,7 +44,7 @@ class App extends Component {
                         <Route exact path='/mulspeaker2' component={MulSpeaker2Page} />                      
                         <Route exact path='/speech' component={SpeechPage} />
                         <Route exact path='/record' component={RecordListPage} />
-
+                        <Route exact path='/admin_exam_create' component={AdminExamCreatePage} />
                     </Switch>
                 
                 </div> 
