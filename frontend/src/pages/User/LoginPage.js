@@ -94,13 +94,6 @@ export default class LoginPage extends Component {
                                 </div>
                             </div>
                             <div className="form-group">
-                                <div className="checkbox">
-                                    <label>
-                                        <input type="checkbox" value="remember-me"/>Remember Password
-                                    </label>
-                                </div>
-                            </div>
-                            <div className="form-group">
                                 <button className="btn btn-primary btn-block" type="submit" disabled={this.state.isLoading ? true : false}>Login &nbsp;&nbsp;&nbsp;
                                     {isLoading ? (
                                         <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
@@ -113,7 +106,7 @@ export default class LoginPage extends Component {
                         </form>
                         <div className="text-center">
                             <Link className="d-block small mt-3" to={'register'}>Register an Account</Link>
-                            <a className="d-block small" href="forgot-password.html">Forgot Password?</a>
+                            <Link className="d-block small" to={'forgotpassword'}>Forgot Password? </Link>
                         </div>
                     </div>
                 </div>
@@ -122,5 +115,4 @@ export default class LoginPage extends Component {
         );
     }
 }
-
 

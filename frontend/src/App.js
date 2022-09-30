@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {BrowserRouter as Router, Route, Switch} from 'react-router-dom';
 import LoginPage from "./pages/User/LoginPage";
+import ForgotPassword from './pages/User/ForgotPassword';
 import RegisterPage from "./pages/User/RegisterPage";
 import ExamListPage from "./pages/ExamListPage";
 import VAD1Page from "./pages/VAD1Page";
@@ -25,6 +26,7 @@ class App extends Component {
                     <Switch>
                         <Route exact path='/' component={LoginPage} />
                         <Route exact path='/login' component={LoginPage} />
+                        <Route exact path='/forgotpassword' component={ForgotPassword}/>
                         <Route exact path='/dashboard' component={ExamListPage} />
                         <Route exact path='/exam' component={ExamListPage} />
                         <Route path='/register' component={RegisterPage} />

@@ -23,5 +23,6 @@ urlpatterns = [
     url('api/users', views.user_list),
     path('api/register',  views.register, name = "register"),
     path('api/login',  views.login, name = "login"),
-    path('api/user/detail', views.get_detail)
+    path('api/user/detail', views.get_detail),
+    path('api/forgetpassword', views.forgetpassword, name="forgetpassword")
 ]
