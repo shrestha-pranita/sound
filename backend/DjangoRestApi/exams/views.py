@@ -34,7 +34,7 @@ def exam_list(request):
             return JsonResponse(exam_serializer.data, safe=False) 
             
         except: 
-            return JsonResponse({'message': 'There are no exams at the moment'}, status=status.HTTP_404_NOT_FOUND)
+            return JsonResponse({'status': 'fail'}, status=status.HTTP_404_NOT_FOUND)
     return response
  
 

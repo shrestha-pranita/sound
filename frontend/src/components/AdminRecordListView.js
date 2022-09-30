@@ -67,13 +67,12 @@ export default class AdminRecordListView extends React.Component {
     })
       .then((res) => res.json())
       .then((res) => {
-        console.log(res.exam);
         this.setState({
-          records: res.data,
-          exams: res.exam,
+          records: res.data.data,
+          exams: res.data.exam,
           status_val: "success",
         });
-        console.log(this.state.exams[0].exam_name);
+ 
       })
       .catch((err) => {
         this.setState({
@@ -196,7 +195,13 @@ export default class AdminRecordListView extends React.Component {
                       #
                     </th>
                     <th scope="col" className="align-middle">
-                      User Id
+                      User Name
+                    </th>
+                    <th scope="col" className="align-middle">
+                      Speech Analyzed
+                    </th>
+                    <th scope="col" className="align-middle">
+                      Number of speech detected
                     </th>
                     <th scope="col" className="align-middle">
                       Created At
@@ -217,7 +222,15 @@ export default class AdminRecordListView extends React.Component {
                         <th scope="row" className="align-middle">
                           {index + 1}
                         </th>
-                        <td className="align-middle">{user_name}</td>
+                        <td className="align-middle">{record.username}</td>
+                        {record.speech_analyzed === 0 ? (
+                          <td className="align-middle">No</td>
+                        ) : null }
+                        {record.speech_analyzed === 1 ? (
+                          <td className="align-middle">Yes</td>
+                        ) : null }
+                        
+                        <td className="align-middle">{record.speech_detected}</td>
                         <td className="align-middle">{record.created_at}</td>
                         {exams[0].analyze === 1 ? (
                           <td className="align-middle">

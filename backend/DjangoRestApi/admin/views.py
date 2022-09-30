@@ -3,6 +3,7 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from exams.models import Exam
 from record.models import Recording
+from users.models import User
 from record.serializers import RecordingSerializer, RecordingForeignSerializer
 from django.core import serializers
 from exams.serializers import ExamSerializer, ExamForeignSerializer
@@ -36,6 +37,7 @@ def admin_exam_list(request):
     :param request: contains request data sent from frontend
     :return: list of exam details
     """  
+
     if request.method == 'GET':
         try:
             exams = Exam.objects.filter(status=1)
@@ -47,6 +49,9 @@ def admin_exam_list(request):
 
 @api_view(['GET', 'POST', 'DELETE'])
 def admin_record_list(request, exam_id):
+
+    # import pdb
+    # pdb.set_trace()
     """
     admin_record_list function fetches the list of recordings from database
     :param request: contains request data sent from frontend
@@ -62,11 +67,36 @@ def admin_record_list(request, exam_id):
 
             recordings = Recording.objects.filter(exam_id_id__exact=exam_id) 
             recording_serializer = RecordingForeignSerializer(recordings, many=True) 
-            return JsonResponse({"data":recording_serializer.data, "exam": exam_serializer.data, "status":"success"}, safe=False)
+            record_data = []
+            for record in recording_serializer.data:
+                exam_name = Exam.objects.get(id__exact = record['exam_id'])
+                user_name = User.objects.get(id__exact = record['user_id'])
+                record_data.append({
+                    'id': record["id"],
+                    'filename': record["filename"],
+                    'folder_name': record["folder_name"],
+                    'speech_detected': record["speech_detected"],
+                    'speech_analyzed': record["speech_analyzed"],
+                    'created_at': record["created_at"],
+                    'exam_name': exam_name.exam_name,
+                    'username': user_name.username
+                })
+                 # print(records)
+          
+            context = {
+                'data': record_data,
+                'exam':exam_serializer.data,
+                #'user_data':get_user,
+                'status':'success',
+            }
+            
+            # return JsonResponse({"data":recording_serializer.data, "exam": exam_serializer.data, "status":"success"}, safe=False)
+            return JsonResponse({"data":context}, safe=False)
         except: 
             return JsonResponse({'data': 'fail'}, status=status.HTTP_204_NO_CONTENT)
     else:
         return response
+
 
 def dissect_speech(audio_path, RATE, model):
     wav = read_audio(audio_path, RATE)
@@ -115,7 +145,7 @@ def recordingViews(request, record_id):
         user_id = request.data['user_id']
         try:
             filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            recordings = Recording.objects.filter(id__exact=record_id)   
+            recordings = Recording.objects.filter(id__exact=record_id)
             recording_serializer = RecordingSerializer(recordings, many=True)
             recording_data = json.loads(json.dumps(recording_serializer.data))
             org_filename = recording_data[0]["filename"]
@@ -246,32 +276,37 @@ def admin_analyze(request, exam_id):
                     timestamp = []
 
                     wholeAudio = AudioSegment.from_wav(filepath)
-
+                    
+                    
                     start, end = dissect_speech(filepath, RATE, model)
+
                     f = open(exam_text_folder + "/" + text_file_name, "w")
                     f.write("start, end (in seconds)\n")
+  
                     if len(start) !=0:
-                        for i in range(0, len(start)):
+                        for t in range(0, len(start)):
 
-                            t1 = int(start[i]) * 1000 
-                            t2 = int(end[i]) * 1000
+                            t1 = int(start[t]) * 1000 
+                            t2 = int(end[t]) * 1000
 
                             if t1 != t2:
                                 newAudio = wholeAudio[t1:t2]
                                 basename = os.path.basename(filepath)
                                 filename = os.path.splitext(basename)
 
-                                name = filename[0] + "_" + str(start[i]) + "_" + str(end[i])  + filename[1]
-                                f_name = filename[0] + "_" + str(start[i]) + "_" + str(end[i])
+                                name = filename[0] + "_" + str(start[t]) + "_" + str(end[t])  + filename[1]
+                                f_name = filename[0] + "_" + str(start[t]) + "_" + str(end[t])
 
                                 new_file_path = folder_name + "/" + name
                                 newAudio.export(new_file_path , format="wav")
 
-                                timestamp.append("{},{}".format(start[i], end[i]))
+                                timestamp.append("{},{}".format(start[t], end[t]))
 
                         if len(timestamp) != 0:
                             f.write('\n'.join(timestamp))
                     f.close()
+
+                    recordings = Recording.objects.filter(id__exact=i["id"]).update(speech_analyzed=1, speech_detected=len(start))
             
             exams = Exam.objects.filter(id__exact=exam_id).update(analyze = 1)
             return JsonResponse({'status': 'success'}, status=status.HTTP_200_OK)

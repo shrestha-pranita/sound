@@ -21,6 +21,8 @@ class RecordingSerializer(serializers.ModelSerializer):
         fields = ('id',
                 'user_id',
                 'exam_id',
+                'speech_detected',
+                'speech_analyzed',
                 'filename',
                 'folder_name',
                 'created_at')
@@ -38,6 +40,8 @@ class RecordingForeignSerializer(serializers.ModelSerializer):
         fields = ('id',
                 'user_id',
                 'exam_id',
+                'speech_detected',
+                'speech_analyzed',
                 'filename',
                 'folder_name',
                 'created_at',
