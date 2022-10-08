@@ -57,8 +57,6 @@ from collections import defaultdict
 import time
 import sklearn
 import pydub
-import gtts
-from playsound import playsound
 import subprocess
 from exams.models import Exam
 

@@ -43,6 +43,7 @@ export default class Header extends Component {
 
                             <div className="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
                                 <Link to={'/exam'} className="dropdown-item">Exams</Link>
+                                <Link to={'/vad2'} className="dropdown-item">VAD2</Link>
                             </div>
                         </li>
                         

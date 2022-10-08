@@ -2,7 +2,11 @@ import { useReactMediaRecorder } from "react-media-recorder";
 import React, { useEffect, useState } from "react";
 import  web_link from "../web_link";
 import Header from '../elements/header';
+import {createModel, KaldiRecognizer, Model } from "vosk-browser";
+import { LogBox } from 'react-native';
 
+LogBox.ignoreLogs(['Warning: ...']);
+LogBox.ignoreAllLogs();
 
 let samples = [];
 let context, source, processor;
@@ -13,8 +17,57 @@ const RecordView = (props) => {
   const [isActive, setIsActive] = useState(false);
   const [counter, setCounter] = useState(0);
   const [result, setResult] = useState({});
+  const [loadedModel, setLoadedModel] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [recognizer, setRecognizer] = useState();
+
   useEffect(() => {
+    const loadModel = async () => {
+      setLoading(true);
+      //loadedModel?.model.terminate();
+  
+      const model = await createModel('models/vosk-model-small-en-us-0.15.tar.gz');
+      setLoadedModel({ model });
+      const recognizer = new model.KaldiRecognizer(16000);
+      console.log(recognizer.acceptWaveform)
+
+      setRecognizer(() => {
+        setLoading(false);
+        return recognizer;
+      });
+
+      /*
+      
+      recognizer.setWords(true);
+      recognizer.on("result", (message: any) => {
+        const result: VoskResult = message.result;
+        setUtterances((utt: VoskResult[]) => [...utt, result]);
+      });
+  
+      recognizer.on("partialresult", (message: any) => {
+        setPartial(message.result.partial);
+      });
+  
+      setRecognizer(() => {
+        setLoading(false);
+        setReady(true);
+        return recognizer;
+      });
+      */
+    };
+    /*
+    const model = createModel('models/vosk-model-small-en-us-0.15.tar.gz');
+    console.log(model)
+    const recognizer = new model.KaldiRecognizer();
+    recognizer.on("result", (message) => {
+        console.log(`Result: ${message.result.text}`);
+    });
+    recognizer.on("partialresult", (message) => {
+        console.log(`Partial result: ${message.result.partial}`);
+    });
+    */
     let intervalId;
+    loadModel();
     if (isActive) {
       intervalId = setInterval(() => {
         const secondCounter = counter % 60;
@@ -125,48 +178,53 @@ const RecordView = (props) => {
     audio: true,
     echoCancellation: true
   });
-    const predictSwitch = () => {
-            processor = context.createScriptProcessor(16384, 1, 1);
-            source.connect(processor);
-            processor.connect(context.destination);
-            processor.onaudioprocess = (e) => {
-            samples = [...samples, ...e.inputBuffer.getChannelData(0)];
-            if (samples.length > 48000) {
-                let out = [];
-                for (let i = 0; i < 48000; i += 3) {
-                let val = Math.floor(32767 * samples[i]);
-                val = Math.min(32767, val);
-                val = Math.max(-32768, val);
-                out.push(val);
-                }
-                samples = samples.slice(48000);
-                let userData = window.localStorage.getItem('user');
-                if(userData){
-                    userData = JSON.parse(userData);
-                }
-        
-                let user_id = userData.id
-                fetch(web_link+'/api/speechVAD', {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    data: out,
-                    user_id: user_id
-                }),
-                })
-                .then((res) => res.json())
-                .then((res) => setResult(res))
-                .catch((err) => console.log(err))
-            }
-            };
-        };
-    const onStopRec = () => {
-        stopRecording();
-        processor.onaudioprocess = null;
-        processor = null;
-        };
+
+  const predictSwitch = () => {
+    processor = context.createScriptProcessor(16384, 1, 1);
+    source.connect(processor);
+    processor.connect(context.destination);
+    processor.onaudioprocess = (e) => {
+    samples = [...samples, ...e.inputBuffer.getChannelData(0)];
+    console.log(e.inputBuffer.length)
+    console.log(recognizer.Result())
+    console.log(recognizer.acceptWaveform(samples));
+    if (samples.length > 48000) {
+        let out = [];
+        for (let i = 0; i < 48000; i += 3) {
+          let val = Math.floor(32767 * samples[i]);
+          val = Math.min(32767, val);
+          val = Math.max(-32768, val);
+          out.push(val);
+        }
+        samples = samples.slice(48000);
+
+        let userData = window.localStorage.getItem('user');
+        if(userData){
+            userData = JSON.parse(userData);
+        }
+
+        let user_id = userData.id
+        fetch(web_link+'/api/speechVAD', {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            data: out,
+            user_id: user_id
+        }),
+        })
+        .then((res) => res.json())
+        .then((res) => setResult(res))
+        .catch((err) => console.log(err))
+    }
+    };
+  };
+  const onStopRec = () => {
+    stopRecording();
+    processor.onaudioprocess = null;
+    processor = null;
+    };
   return (
     <>
     <div id = "wrapper">
